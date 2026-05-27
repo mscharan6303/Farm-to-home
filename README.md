@@ -6,7 +6,7 @@ Full-stack MERN agricultural e-commerce platform connecting farmers directly wit
 
 - **Core Technologies:** ReactJS, Node.js, Express.js, MongoDB, HTML5, CSS3
 - **Additional Tools:** Socket.IO (Real-time chat), JWT (Authentication), Mongoose, Vite
-- **Third-Party Services:** Cloudinary (Image Hosting), Razorpay (Payments/COD logic)
+- **Third-Party Services:** Cloudinary (Image Hosting)
 
 ## Project Structure
 
@@ -22,7 +22,6 @@ farm-to-home/
 - Node.js 18+
 - MongoDB (local) or MongoDB Atlas URI
 - Cloudinary account (free tier works)
-- Razorpay test account (optional — COD works without it)
 
 ### 2. Backend setup
 ```bash
@@ -54,8 +53,6 @@ JWT_SECRET=your_long_random_secret
 CLOUDINARY_CLOUD_NAME=...
 CLOUDINARY_API_KEY=...
 CLOUDINARY_API_SECRET=...
-RAZORPAY_KEY_ID=...
-RAZORPAY_KEY_SECRET=...
 CLIENT_URL=http://localhost:5173
 ```
 
@@ -106,7 +103,6 @@ See `backend/routes/` for the full list. Highlights:
 - `GET|POST /api/cart`, `DELETE /api/cart/remove/:id`
 - `POST /api/orders`, `GET /api/orders/myorders`, `PUT /api/orders/status/:id`
 - `POST /api/reviews`, `GET /api/reviews/:productId`
-- `POST /api/payment/create`, `POST /api/payment/verify`
 - `GET /api/chat`, `POST /api/chat/message`
 - `GET /api/admin/users`, `GET /api/admin/analytics`
 
