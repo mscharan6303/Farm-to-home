@@ -22,7 +22,7 @@ api.interceptors.response.use(
       const url = err.config?.url;
       
       // Fallback for getting all products
-      if (url && err.config.method === "get" && url.includes("/products")) {
+      if (url && err.config.method?.toLowerCase() === "get" && url.includes("/products")) {
         console.warn("Backend unavailable or timing out, using mock data for products.");
         
         // Single product fallback
