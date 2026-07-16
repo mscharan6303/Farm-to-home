@@ -34,12 +34,33 @@ api.interceptors.response.use(
         }
         
         // All products fallback
+        let filteredProducts = [...mockProducts];
+        try {
+          // err.config.url might be relative like "/products?category=Fruits"
+          const fakeUrl = new URL(url, 'http://dummy.com');
+          const category = fakeUrl.searchParams.get('category');
+          const keyword = fakeUrl.searchParams.get('keyword');
+          
+          if (category && category !== 'All') {
+            filteredProducts = filteredProducts.filter(p => p.category === category);
+          }
+          if (keyword) {
+            const kw = keyword.toLowerCase();
+            filteredProducts = filteredProducts.filter(p => 
+              p.name.toLowerCase().includes(kw) || 
+              p.description.toLowerCase().includes(kw)
+            );
+          }
+        } catch (e) {
+          console.error("Error applying filters to mock data:", e);
+        }
+
         return Promise.resolve({ 
           data: { 
-            products: mockProducts, 
+            products: filteredProducts, 
             page: 1, 
             pages: 1, 
-            total: mockProducts.length 
+            total: filteredProducts.length 
           } 
         });
       }
