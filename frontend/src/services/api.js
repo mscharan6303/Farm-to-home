@@ -17,53 +17,50 @@ api.interceptors.request.use((cfg) => {
 api.interceptors.response.use(
   (r) => r,
   (err) => {
-    // If network error OR 5xx server error (Render asleep / Gateway Timeout)
-    if (!err.response || err.code === "ERR_NETWORK" || err.response.status >= 500) {
-      const url = err.config?.url;
+    const url = err.config?.url;
+    
+    // Fallback for getting products on ANY error (including 404s from missing backend)
+    if (url && err.config.method?.toLowerCase() === "get" && url.includes("/products")) {
+      console.warn("Backend unavailable or returning error, using mock data for products.");
       
-      // Fallback for getting all products
-      if (url && err.config.method?.toLowerCase() === "get" && url.includes("/products")) {
-        console.warn("Backend unavailable or timing out, using mock data for products.");
-        
-        // Single product fallback
-        const singleProductMatch = url.match(/\/products\/([a-zA-Z0-9_-]+)(?:\?.*)?$/);
-        if (singleProductMatch && singleProductMatch[1]) {
-          const id = singleProductMatch[1];
-          const product = mockProducts.find(p => p._id === id) || mockProducts[0];
-          return Promise.resolve({ data: product });
-        }
-        
-        // All products fallback
-        let filteredProducts = [...mockProducts];
-        try {
-          // err.config.url might be relative like "/products?category=Fruits"
-          const fakeUrl = new URL(url, 'http://dummy.com');
-          const category = fakeUrl.searchParams.get('category');
-          const keyword = fakeUrl.searchParams.get('keyword');
-          
-          if (category && category !== 'All') {
-            filteredProducts = filteredProducts.filter(p => p.category === category);
-          }
-          if (keyword) {
-            const kw = keyword.toLowerCase();
-            filteredProducts = filteredProducts.filter(p => 
-              p.name.toLowerCase().includes(kw) || 
-              p.description.toLowerCase().includes(kw)
-            );
-          }
-        } catch (e) {
-          console.error("Error applying filters to mock data:", e);
-        }
-
-        return Promise.resolve({ 
-          data: { 
-            products: filteredProducts, 
-            page: 1, 
-            pages: 1, 
-            total: filteredProducts.length 
-          } 
-        });
+      // Single product fallback
+      const singleProductMatch = url.match(/\/products\/([a-zA-Z0-9_-]+)(?:\?.*)?$/);
+      if (singleProductMatch && singleProductMatch[1]) {
+        const id = singleProductMatch[1];
+        const product = mockProducts.find(p => p._id === id) || mockProducts[0];
+        return Promise.resolve({ data: product });
       }
+      
+      // All products fallback
+      let filteredProducts = [...mockProducts];
+      try {
+        // err.config.url might be relative like "/products?category=Fruits"
+        const fakeUrl = new URL(url, 'http://dummy.com');
+        const category = fakeUrl.searchParams.get('category');
+        const keyword = fakeUrl.searchParams.get('keyword');
+        
+        if (category && category !== 'All') {
+          filteredProducts = filteredProducts.filter(p => p.category === category);
+        }
+        if (keyword) {
+          const kw = keyword.toLowerCase();
+          filteredProducts = filteredProducts.filter(p => 
+            p.name.toLowerCase().includes(kw) || 
+            p.description.toLowerCase().includes(kw)
+          );
+        }
+      } catch (e) {
+        console.error("Error applying filters to mock data:", e);
+      }
+
+      return Promise.resolve({ 
+        data: { 
+          products: filteredProducts, 
+          page: 1, 
+          pages: 1, 
+          total: filteredProducts.length 
+        } 
+      });
     }
 
     if (err.response?.status === 401) {
