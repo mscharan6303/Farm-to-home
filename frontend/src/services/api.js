@@ -63,6 +63,41 @@ api.interceptors.response.use(
       });
     }
 
+    // Fallback for Auth Login
+    if (url && err.config.method?.toLowerCase() === "post" && url.includes("/auth/login")) {
+      console.warn("Backend unavailable, using mock auth data.");
+      try {
+        const reqBody = JSON.parse(err.config.data);
+        if (reqBody.email === "testuser@example.com" && reqBody.password === "password123") {
+          return Promise.resolve({
+            data: {
+              _id: "mock_user_1",
+              name: "Test User",
+              email: "testuser@example.com",
+              role: "consumer",
+              isPremium: false,
+              token: "mock_jwt_token_consumer"
+            }
+          });
+        }
+        if (reqBody.email === "farmer@demo.com" && reqBody.password === "password123") {
+          return Promise.resolve({
+            data: {
+              _id: "6a15b4b1d1e36502bed909c1",
+              name: "Demo Farmer",
+              email: "farmer@demo.com",
+              role: "farmer",
+              farmName: "Green Acres Demo Farm",
+              token: "mock_jwt_token_farmer"
+            }
+          });
+        }
+        return Promise.reject({ response: { data: { message: "Invalid email or password" } } });
+      } catch (e) {
+        // ignore
+      }
+    }
+
     if (err.response?.status === 401) {
       // Optional: redirect to login
     }
