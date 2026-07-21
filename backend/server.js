@@ -1,4 +1,5 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -17,7 +18,7 @@ connectDB();
 const app = express();
 startMarketUpdater();
 
-const path = require("path");
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(helmet());
 app.use(cors({ origin: true, credentials: true }));
@@ -77,4 +78,9 @@ io.on("connection", (socket) => {
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
+if (process.env.NODE_ENV !== "production") {
+  server.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
+}
+
+module.exports = app;
+
