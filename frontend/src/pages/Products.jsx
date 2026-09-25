@@ -4,6 +4,7 @@ import api from "../services/api";
 import ProductCard from "../components/ProductCard";
 import Loader from "../components/Loader";
 import { FiFilter, FiSearch, FiX } from "react-icons/fi";
+import { mockProducts } from "../services/mockData";
 
 const CATEGORIES = ["All", "Vegetables", "Fruits", "Leafy Vegetables", "Dairy", "Grains", "Organic Products"];
 
@@ -19,6 +20,28 @@ export default function Products() {
   const sort = params.get("sort") || "-createdAt";
   const page = parseInt(params.get("page") || "1");
 
+  const applyMockFallback = () => {
+    let filtered = [...mockProducts];
+    if (category !== "All") {
+      filtered = filtered.filter((p) => p.category === category);
+    }
+    if (keyword) {
+      const kw = keyword.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.name.toLowerCase().includes(kw) ||
+          p.description.toLowerCase().includes(kw) ||
+          p.category.toLowerCase().includes(kw)
+      );
+    }
+    const limit = 12;
+    const totalPages = Math.ceil(filtered.length / limit) || 1;
+    const startIndex = (page - 1) * limit;
+    const pageProducts = filtered.slice(startIndex, startIndex + limit);
+    setProducts(pageProducts);
+    setPagination({ page, totalPages });
+  };
+
   useEffect(() => {
     setLoading(true);
     let q = `?page=${page}&limit=12&sort=${sort}`;
@@ -27,11 +50,20 @@ export default function Products() {
 
     api.get(`/products${q}`)
       .then((r) => {
-        setProducts(r.data.products);
-        setPagination({ page: r.data.page, totalPages: r.data.pages });
+        if (r.data && Array.isArray(r.data.products) && r.data.products.length > 0) {
+          setProducts(r.data.products);
+          setPagination({ page: r.data.page || 1, totalPages: r.data.pages || 1 });
+        } else {
+          applyMockFallback();
+        }
+      })
+      .catch((err) => {
+        console.warn("API error on Products page, using mock fallback:", err.message);
+        applyMockFallback();
       })
       .finally(() => setLoading(false));
   }, [category, keyword, sort, page]);
+
 
   const updateParam = (key, val) => {
     const p = new URLSearchParams(params);

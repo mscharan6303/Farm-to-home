@@ -10,13 +10,29 @@ const rateLimit = require("express-rate-limit");
 const http = require("http");
 const { Server } = require("socket.io");
 
+const mongoose = require("mongoose");
 const connectDB = require("./config/db");
 const { notFound, errorHandler } = require("./middleware/error");
 const { startMarketUpdater } = require("./utils/marketUpdater");
 
 connectDB();
 const app = express();
-startMarketUpdater();
+
+if (!process.env.VERCEL) {
+  startMarketUpdater();
+}
+
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState < 1) {
+    try {
+      await connectDB();
+    } catch (err) {
+      console.error("DB Connection Middleware Error:", err.message);
+    }
+  }
+  next();
+});
+
 
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

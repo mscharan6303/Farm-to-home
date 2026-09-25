@@ -6,6 +6,7 @@ import { useCart } from "../context/CartContext";
 import { FiCheck, FiTruck, FiShield, FiStar, FiMessageSquare } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
+import { mockProducts } from "../services/mockData";
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -19,8 +20,22 @@ export default function ProductDetails() {
   const { user } = useAuth();
 
   useEffect(() => {
-    api.get(`/products/${id}`).then(r => setProduct(r.data)).finally(() => setLoading(false));
+    api.get(`/products/${id}`)
+      .then((r) => {
+        if (r.data && r.data._id) {
+          setProduct(r.data);
+        } else {
+          const found = mockProducts.find((p) => p._id === id || p.id === id);
+          if (found) setProduct(found);
+        }
+      })
+      .catch(() => {
+        const found = mockProducts.find((p) => p._id === id || p.id === id);
+        if (found) setProduct(found);
+      })
+      .finally(() => setLoading(false));
   }, [id]);
+
 
   if (loading) return <Loader />;
   if (!product) return <div className="container text-center mt-4"><h2>Product not found</h2></div>;

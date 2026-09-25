@@ -4,6 +4,7 @@ import api from "../services/api";
 import ProductCard from "../components/ProductCard";
 import Loader from "../components/Loader";
 import { useAuth } from "../context/AuthContext";
+import { mockProducts } from "../services/mockData";
 
 const CATEGORIES = [
   { name: "Vegetables", img: "https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=200&h=200&fit=crop" },
@@ -27,9 +28,20 @@ export default function Home() {
       return;
     }
     api.get("/products?limit=8&sort=best_selling")
-      .then((r) => setProducts(r.data.products))
+      .then((r) => {
+        if (r.data && Array.isArray(r.data.products) && r.data.products.length > 0) {
+          setProducts(r.data.products);
+        } else {
+          setProducts(mockProducts.slice(0, 8));
+        }
+      })
+      .catch((err) => {
+        console.warn("API error on Home page, using mock fallback:", err.message);
+        setProducts(mockProducts.slice(0, 8));
+      })
       .finally(() => setLoading(false));
   }, [user, nav]);
+
 
   return (
     <>
