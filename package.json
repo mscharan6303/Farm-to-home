@@ -1,4 +1,11 @@
 {
+  "name": "farm-to-home",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd backend && node server.js"
+  },
   "dependencies": {
     "puppeteer": "^25.1.0"
   }
