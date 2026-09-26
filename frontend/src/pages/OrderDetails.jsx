@@ -105,9 +105,14 @@ export default function OrderDetails() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           {/* Status Tracker Stepper */}
           <div className="card" style={{ padding: '2rem' }}>
-            <h3 style={{ fontSize: '1.3rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <FiTruck color="var(--primary)" /> Live Order Tracking
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <h3 style={{ fontSize: '1.3rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <FiTruck color="var(--primary)" /> Live Order Tracking
+              </h3>
+              <span className="badge" style={{ background: '#fef3c7', color: '#92400e', fontSize: '0.85rem', padding: '4px 12px', fontWeight: 'bold' }}>
+                {order.deliverySlot || "🌅 Morning Slot (7:00 AM - 10:00 AM)"}
+              </span>
+            </div>
 
             {order.status === "Cancelled" ? (
               <div style={{ padding: '1.2rem 1.5rem', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 'var(--radius-sm)', color: '#991b1b', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '1rem' }}>

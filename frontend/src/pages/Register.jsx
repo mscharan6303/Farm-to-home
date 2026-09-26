@@ -65,6 +65,7 @@ export default function Register() {
               <select className="select" value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})}>
                 <option value="user">Customer</option>
                 <option value="farmer">Farmer / Seller</option>
+                <option value="delivery">Delivery Agent / Driver 🛵</option>
               </select>
             </div>
             

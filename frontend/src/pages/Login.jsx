@@ -65,8 +65,48 @@ export default function Login() {
               {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
+
+          <div style={{ marginTop: '2rem', padding: '1rem', background: 'var(--bg-soft)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+            <span style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              ⚡ Quick Demo Login
+            </span>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <button 
+                type="button" 
+                className="btn btn-sm btn-outline" 
+                onClick={() => { setEmail("user@demo.com"); setPassword("demo123"); }}
+                style={{ fontSize: '0.8rem', padding: '4px 8px' }}
+              >
+                👤 Customer
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-sm btn-outline" 
+                onClick={() => { setEmail("farmer@demo.com"); setPassword("demo123"); }}
+                style={{ fontSize: '0.8rem', padding: '4px 8px' }}
+              >
+                🌾 Farmer
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-sm btn-outline" 
+                onClick={() => { setEmail("delivery@demo.com"); setPassword("demo123"); }}
+                style={{ fontSize: '0.8rem', padding: '4px 8px' }}
+              >
+                🛵 Delivery Agent
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-sm btn-outline" 
+                onClick={() => { setEmail("admin@demo.com"); setPassword("demo123"); }}
+                style={{ fontSize: '0.8rem', padding: '4px 8px' }}
+              >
+                📊 Platform Admin
+              </button>
+            </div>
+          </div>
           
-          <p className="alt" style={{ textAlign: 'center', marginTop: '2rem', color: 'var(--muted)' }}>
+          <p className="alt" style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--muted)' }}>
             Don't have an account? <Link to="/register" style={{ fontWeight: '600' }}>Sign up here</Link>
           </p>
         </div>

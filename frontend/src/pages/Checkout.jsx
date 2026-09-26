@@ -18,6 +18,7 @@ export default function Checkout() {
   const [utrNumber, setUtrNumber] = useState("");
   const [isSubscription, setIsSubscription] = useState(false);
   const [frequency, setFrequency] = useState("Weekly");
+  const [deliverySlot, setDeliverySlot] = useState("🌅 Morning Slot (7:00 AM - 10:00 AM)");
 
   const isPremium = user?.isPremium;
   const rawSubtotal = cart?.items?.reduce((acc, i) => acc + (i.product.discountPrice || i.product.price) * i.quantity, 0) || 0;
@@ -105,11 +106,12 @@ export default function Checkout() {
           totalPrice: totalToPay,
           isSubscription,
           frequency,
+          deliverySlot,
           isPaid: isPaidOnline,
           paymentResult: { id: txnRef, status: isPaidOnline ? "Completed" : "Pending" }
         });
         orderId = data._id;
-        saveOrderToStorage(data);
+        saveOrderToStorage({ ...data, deliverySlot });
       } catch (backendErr) {
         console.warn("Backend order placement failed, creating local order record:", backendErr);
         const newOrder = {
@@ -130,6 +132,7 @@ export default function Checkout() {
           totalPrice: totalToPay,
           isSubscription,
           frequency,
+          deliverySlot,
           isPaid: isPaidOnline,
           paidAt: isPaidOnline ? new Date().toISOString() : null,
           paymentResult: { id: txnRef, status: isPaidOnline ? "Completed" : "Pending" },
@@ -186,7 +189,36 @@ export default function Checkout() {
             />
           </div>
 
-          <h3 style={{ fontSize: '1.5rem', margin: '3rem 0 1.5rem', color: 'var(--primary)' }}>2. Choose Payment Method</h3>
+          <h3 style={{ fontSize: '1.5rem', margin: '2.5rem 0 1.2rem', color: 'var(--primary)' }}>2. Preferred Delivery Time Slot</h3>
+          <div className="grid grid-2" style={{ gap: '1rem', marginBottom: '2rem' }}>
+            <label style={{ 
+              display: 'flex', alignItems: 'center', gap: '12px', 
+              padding: '1.2rem 1.5rem', border: `2px solid ${deliverySlot.includes('Morning') ? 'var(--primary)' : 'var(--border)'}`, 
+              borderRadius: 'var(--radius)', cursor: 'pointer', background: deliverySlot.includes('Morning') ? '#fef3c7' : '#fff',
+              transition: '0.2s'
+            }}>
+              <input type="radio" name="slot" checked={deliverySlot.includes("Morning")} onChange={() => setDeliverySlot("🌅 Morning Slot (7:00 AM - 10:00 AM)")} style={{ transform: 'scale(1.3)', accentColor: 'var(--primary)' }} />
+              <div>
+                <strong style={{ display: 'block', fontSize: '1.05rem', color: '#92400e' }}>🌅 Morning Slot</strong>
+                <span className="muted" style={{ fontSize: '0.85rem' }}>7:00 AM – 10:00 AM (Fresh Morning Harvest)</span>
+              </div>
+            </label>
+
+            <label style={{ 
+              display: 'flex', alignItems: 'center', gap: '12px', 
+              padding: '1.2rem 1.5rem', border: `2px solid ${deliverySlot.includes('Evening') ? 'var(--primary)' : 'var(--border)'}`, 
+              borderRadius: 'var(--radius)', cursor: 'pointer', background: deliverySlot.includes('Evening') ? '#e0e7ff' : '#fff',
+              transition: '0.2s'
+            }}>
+              <input type="radio" name="slot" checked={deliverySlot.includes("Evening")} onChange={() => setDeliverySlot("🌇 Evening Slot (5:00 PM - 8:00 PM)")} style={{ transform: 'scale(1.3)', accentColor: 'var(--primary)' }} />
+              <div>
+                <strong style={{ display: 'block', fontSize: '1.05rem', color: '#3730a3' }}>🌇 Evening Slot</strong>
+                <span className="muted" style={{ fontSize: '0.85rem' }}>5:00 PM – 8:00 PM (Afternoon Harvest)</span>
+              </div>
+            </label>
+          </div>
+
+          <h3 style={{ fontSize: '1.5rem', margin: '2.5rem 0 1.2rem', color: 'var(--primary)' }}>3. Choose Payment Method</h3>
           
           <div className="grid grid-2" style={{ gap: '1rem', marginBottom: '2rem' }}>
             {/* UPI Option */}

@@ -105,9 +105,17 @@ export default function Navbar() {
         </div>
 
         <div className={`nav-links ${open ? "open" : ""}`}>
-          {user?.role === "farmer" && <NavLink to="/farmer">Dashboard</NavLink>}
+          {user?.role === "farmer" && <NavLink to="/farmer">Farmer Dashboard</NavLink>}
+          {user?.role === "delivery" && <NavLink to="/delivery" style={{ color: "var(--primary)", fontWeight: "bold" }}>🛵 Delivery Hub</NavLink>}
+          {user?.role === "admin" && (
+            <>
+              <NavLink to="/farmer">Farmer Panel</NavLink>
+              <NavLink to="/delivery">Delivery Hub</NavLink>
+              <NavLink to="/admin" style={{ color: "var(--primary)", fontWeight: "bold" }}>📊 Platform Admin</NavLink>
+            </>
+          )}
           
-          {(!user || user.role !== "farmer") && (
+          {(!user || (user.role !== "farmer" && user.role !== "delivery" && user.role !== "admin")) && (
             <>
               <NavLink to="/">Home</NavLink>
               <NavLink to="/products">Products</NavLink>

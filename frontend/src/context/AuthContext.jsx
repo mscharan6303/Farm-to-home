@@ -65,16 +65,19 @@ export function AuthProvider({ children }) {
       return data;
     } catch (e) {
       if (email && password) {
-        const isFarmer = email.toLowerCase().includes("farmer") || email === "farmer@demo.com";
-        const isAdmin = email.toLowerCase().includes("admin") || email === "admin@demo.com";
+        const lowerEmail = email.toLowerCase();
+        const isFarmer = lowerEmail.includes("farmer") || lowerEmail === "farmer@demo.com";
+        const isAdmin = lowerEmail.includes("admin") || lowerEmail === "admin@demo.com";
+        const isDelivery = lowerEmail.includes("delivery") || lowerEmail === "delivery@demo.com" || lowerEmail.includes("driver");
+
         const rawName = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, " ");
         const formattedName = rawName ? rawName.charAt(0).toUpperCase() + rawName.slice(1) : "Demo User";
 
         const mockUser = {
-          _id: isFarmer ? "6a15b4b1d1e36502bed909c1" : "6a15b3d6540c2b6b8b956183",
-          name: isFarmer ? "Demo Farmer" : formattedName,
+          _id: isFarmer ? "6a15b4b1d1e36502bed909c1" : isDelivery ? "6a15b5e789a0123456789abc" : isAdmin ? "6a15b6f00112233445566778" : "6a15b3d6540c2b6b8b956183",
+          name: isFarmer ? "Demo Farmer" : isDelivery ? "Demo Delivery Driver" : isAdmin ? "Platform Admin" : formattedName,
           email: email,
-          role: isFarmer ? "farmer" : isAdmin ? "admin" : "consumer",
+          role: isFarmer ? "farmer" : isDelivery ? "delivery" : isAdmin ? "admin" : "consumer",
           token: "mock_demo_jwt_token_12345"
         };
         persist(mockUser);

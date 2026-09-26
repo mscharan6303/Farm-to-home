@@ -21,6 +21,8 @@ import EditProduct from "./pages/farmer/EditProduct";
 import ManageProducts from "./pages/farmer/ManageProducts";
 import OrdersReceived from "./pages/farmer/OrdersReceived";
 import FarmerProfile from "./pages/farmer/FarmerProfile";
+import DeliveryDashboard from "./pages/delivery/DeliveryDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
@@ -55,6 +57,9 @@ export default function App() {
           <Route path="/farmer/products/:id/edit" element={<ProtectedRoute roles={["farmer","admin"]}><EditProduct /></ProtectedRoute>} />
           <Route path="/farmer/orders" element={<ProtectedRoute roles={["farmer","admin"]}><OrdersReceived /></ProtectedRoute>} />
           <Route path="/farmer/profile" element={<ProtectedRoute roles={["farmer","admin"]}><FarmerProfile /></ProtectedRoute>} />
+
+          <Route path="/delivery" element={<ProtectedRoute roles={["delivery","admin"]}><DeliveryDashboard /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute roles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
 
 
           <Route path="*" element={<NotFound />} />

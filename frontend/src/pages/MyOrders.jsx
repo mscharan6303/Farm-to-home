@@ -181,7 +181,7 @@ export default function MyOrders() {
                       Order #{o._id.substring(o._id.length - 6).toUpperCase()}
                     </strong>
                     <span className="muted" style={{ fontSize: '0.9rem', display: 'block', marginBottom: '0.4rem', color: 'var(--primary)', fontWeight: '500' }}>
-                      📅 {formatOrderDateTime(o.createdAt)}
+                      📅 {formatOrderDateTime(o.createdAt)} &bull; <span style={{ color: '#d97706', fontWeight: 'bold' }}>{o.deliverySlot || "🌅 Morning Slot"}</span>
                     </span>
                     <div style={{ fontSize: '0.95rem', color: 'var(--text)' }}>
                       {o.items?.map(i => `${i.quantity}x ${i.name}`).join(', ').substring(0, 50)}
