@@ -6,6 +6,8 @@ import Loader from "../components/Loader";
 import { useAuth } from "../context/AuthContext";
 import { mockProducts } from "../services/mockData";
 
+import FarmerVideoAds from "../components/FarmerVideoAds";
+
 const CATEGORIES = [
   { name: "Vegetables", img: "https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=200&h=200&fit=crop" },
   { name: "Fruits", img: "https://images.unsplash.com/photo-1519996529931-28324d5a630e?w=200&h=200&fit=crop" },
@@ -55,6 +57,8 @@ export default function Home() {
           </form>
         </div>
       </section>
+
+      <FarmerVideoAds />
 
       <section className="section container">
         <h2 className="section-title"><small>Shop by</small>Categories</h2>
