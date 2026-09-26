@@ -29,7 +29,7 @@ export function CartProvider({ children }) {
   const fetchCart = async () => {
     if (!user) return;
     try {
-      const { data } = await api.get("/cart");
+      const { data } = await api.get("/cart", { timeout: 3000 });
       if (data && Array.isArray(data.items)) {
         setCart(data);
         saveLocalCart(data);
@@ -43,7 +43,8 @@ export function CartProvider({ children }) {
     fetchCart();
   }, [user]);
 
-  const addToCart = async (productOrId, quantity = 1) => {
+  // OPTIMISTIC INSTANT ADD TO CART (0ms response time!)
+  const addToCart = (productOrId, quantity = 1) => {
     let targetProduct = null;
     let productId = productOrId;
 
@@ -54,19 +55,7 @@ export function CartProvider({ children }) {
       targetProduct = mockProducts.find((p) => p._id === productId || p.id === productId);
     }
 
-    try {
-      const { data } = await api.post("/cart/add", { productId, quantity });
-      if (data && Array.isArray(data.items)) {
-        setCart(data);
-        saveLocalCart(data);
-        toast.success("Added to cart! 🛒", { id: "cart-toast" });
-        return;
-      }
-    } catch (err) {
-      console.warn("Backend cart API error, updating cart locally:", err.message);
-    }
-
-    // Local fallback update
+    // 1. Instant local state update
     setCart((prevCart) => {
       const currentItems = Array.isArray(prevCart?.items) ? [...prevCart.items] : [];
       const existingIndex = currentItems.findIndex((i) => {
@@ -100,20 +89,23 @@ export function CartProvider({ children }) {
     });
 
     toast.success("Added to cart! 🛒", { id: "cart-toast" });
+
+    // 2. Async non-blocking background sync
+    if (user) {
+      api.post("/cart/add", { productId, quantity }, { timeout: 2500 })
+        .then(({ data }) => {
+          if (data && Array.isArray(data.items)) {
+            setCart(data);
+            saveLocalCart(data);
+          }
+        })
+        .catch(() => { /* quiet fallback */ });
+    }
   };
 
-  const updateQty = async (productId, quantity) => {
+  // OPTIMISTIC INSTANT QUANTITY UPDATE (0ms response time!)
+  const updateQty = (productId, quantity) => {
     if (quantity < 1) return removeFromCart(productId);
-    try {
-      const { data } = await api.put("/cart/update", { productId, quantity });
-      if (data && Array.isArray(data.items)) {
-        setCart(data);
-        saveLocalCart(data);
-        return;
-      }
-    } catch (err) {
-      console.warn("Updating quantity locally:", err.message);
-    }
 
     setCart((prevCart) => {
       const currentItems = Array.isArray(prevCart?.items) ? [...prevCart.items] : [];
@@ -129,21 +121,21 @@ export function CartProvider({ children }) {
       saveLocalCart(newCart);
       return newCart;
     });
+
+    if (user) {
+      api.put("/cart/update", { productId, quantity }, { timeout: 2500 })
+        .then(({ data }) => {
+          if (data && Array.isArray(data.items)) {
+            setCart(data);
+            saveLocalCart(data);
+          }
+        })
+        .catch(() => { /* quiet fallback */ });
+    }
   };
 
-  const removeFromCart = async (productId) => {
-    try {
-      const { data } = await api.delete(`/cart/remove/${productId}`);
-      if (data && Array.isArray(data.items)) {
-        setCart(data);
-        saveLocalCart(data);
-        toast.success("Item removed");
-        return;
-      }
-    } catch (err) {
-      console.warn("Removing from cart locally:", err.message);
-    }
-
+  // OPTIMISTIC INSTANT REMOVE FROM CART (0ms response time!)
+  const removeFromCart = (productId) => {
     setCart((prevCart) => {
       const currentItems = Array.isArray(prevCart?.items) ? [...prevCart.items] : [];
       const filtered = currentItems.filter((i) => {
@@ -154,16 +146,31 @@ export function CartProvider({ children }) {
       saveLocalCart(newCart);
       return newCart;
     });
-    toast.success("Item removed");
+
+    toast.success("Item removed", { id: "cart-toast-remove" });
+
+    if (user) {
+      api.delete(`/cart/remove/${productId}`, { timeout: 2500 })
+        .then(({ data }) => {
+          if (data && Array.isArray(data.items)) {
+            setCart(data);
+            saveLocalCart(data);
+          }
+        })
+        .catch(() => { /* quiet fallback */ });
+    }
   };
 
   const clearCart = async () => {
-    try {
-      await api.delete("/cart");
-    } catch { /* ignore */ }
     const emptyCart = { items: [] };
     setCart(emptyCart);
     saveLocalCart(emptyCart);
+
+    if (user) {
+      try {
+        await api.delete("/cart", { timeout: 2500 });
+      } catch { /* quiet fallback */ }
+    }
   };
 
   const subtotal = (cart?.items || []).reduce((s, i) => {
