@@ -28,7 +28,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.826Z",
-    "updatedAt": "2026-09-26T05:39:48.393Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af558",
@@ -59,7 +59,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.828Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af55a",
@@ -90,7 +90,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.828Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af55c",
@@ -121,7 +121,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.828Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af55e",
@@ -152,7 +152,7 @@ export const mockProducts = [
     "sold": 1,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af560",
@@ -183,7 +183,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af562",
@@ -214,7 +214,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af564",
@@ -245,15 +245,15 @@ export const mockProducts = [
     "sold": 1,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af566",
     "name": "Alphonso Aam (Mangoes)",
     "category": "Fruits",
     "description": "The king of fruits.",
-    "price": 73,
-    "discountPrice": 61,
+    "price": 196,
+    "discountPrice": 160,
     "stock": 34,
     "unit": "dozen",
     "images": [
@@ -276,15 +276,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af568",
     "name": "Anaar (Pomegranate)",
     "category": "Fruits",
     "description": "Ruby-red, sweet pomegranates.",
-    "price": 180,
-    "discountPrice": 162,
+    "price": 135,
+    "discountPrice": 110,
     "stock": 38,
     "unit": "kg",
     "images": [
@@ -307,15 +307,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af56a",
     "name": "Kela (Bananas)",
     "category": "Fruits",
     "description": "Fresh and sweet yellow bananas.",
-    "price": 10,
-    "discountPrice": 8,
+    "price": 56,
+    "discountPrice": 45,
     "stock": 31,
     "unit": "dozen",
     "images": [
@@ -338,15 +338,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af56c",
     "name": "Seb (Apples)",
     "category": "Fruits",
     "description": "Crisp and sweet red apples.",
-    "price": 200,
-    "discountPrice": 180,
+    "price": 135,
+    "discountPrice": 110,
     "stock": 38,
     "unit": "kg",
     "images": [
@@ -369,15 +369,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af56e",
     "name": "Santra (Oranges)",
     "category": "Fruits",
     "description": "Juicy citrus oranges.",
-    "price": 120,
-    "discountPrice": 108,
+    "price": 75,
+    "discountPrice": 61,
     "stock": 32,
     "unit": "kg",
     "images": [
@@ -400,7 +400,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af570",
@@ -438,8 +438,8 @@ export const mockProducts = [
     "name": "Kiwi",
     "category": "Fruits",
     "description": "Tangy and sweet green kiwi.",
-    "price": 180,
-    "discountPrice": 162,
+    "price": 270,
+    "discountPrice": 220,
     "stock": 32,
     "unit": "box",
     "images": [
@@ -462,15 +462,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af574",
     "name": "Pineapple",
     "category": "Fruits",
     "description": "Tropical sweet pineapple.",
-    "price": 90,
-    "discountPrice": 81,
+    "price": 135,
+    "discountPrice": 110,
     "stock": 54,
     "unit": "pc",
     "images": [
@@ -493,7 +493,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af576",
@@ -524,7 +524,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af578",
@@ -555,7 +555,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af57a",
@@ -586,7 +586,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af57c",
@@ -617,7 +617,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-09-26T05:39:48.395Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af57e",
@@ -748,8 +748,8 @@ export const mockProducts = [
     "name": "Desi Ghee",
     "category": "Dairy",
     "description": "Pure A2 cow ghee.",
-    "price": 750,
-    "discountPrice": 675,
+    "price": 745,
+    "discountPrice": 670,
     "stock": 33,
     "unit": "liter",
     "images": [
@@ -772,15 +772,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.830Z",
-    "updatedAt": "2026-06-19T14:10:31.830Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af588",
     "name": "Fresh Milk",
     "category": "Dairy",
     "description": "Farm fresh full cream milk.",
-    "price": 65,
-    "discountPrice": 59,
+    "price": 64,
+    "discountPrice": 57,
     "stock": 29,
     "unit": "liter",
     "images": [
@@ -803,15 +803,15 @@ export const mockProducts = [
     "sold": 1,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.830Z",
-    "updatedAt": "2026-06-19T14:44:31.375Z"
+    "updatedAt": "2026-09-26T05:49:10.337Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af58a",
     "name": "Paneer",
     "category": "Dairy",
     "description": "Soft and fresh cottage cheese.",
-    "price": 350,
-    "discountPrice": 315,
+    "price": 347,
+    "discountPrice": 312,
     "stock": 44,
     "unit": "kg",
     "images": [
@@ -834,15 +834,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.830Z",
-    "updatedAt": "2026-06-19T14:10:31.830Z"
+    "updatedAt": "2026-09-26T05:49:10.338Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af58c",
     "name": "Butter",
     "category": "Dairy",
     "description": "Creamy unsalted butter.",
-    "price": 400,
-    "discountPrice": 360,
+    "price": 397,
+    "discountPrice": 357,
     "stock": 39,
     "unit": "kg",
     "images": [
@@ -865,15 +865,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.830Z",
-    "updatedAt": "2026-06-19T14:10:31.830Z"
+    "updatedAt": "2026-09-26T05:49:10.338Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af58e",
     "name": "Cheese",
     "category": "Dairy",
     "description": "Aged cheddar cheese.",
-    "price": 600,
-    "discountPrice": 540,
+    "price": 596,
+    "discountPrice": 536,
     "stock": 25,
     "unit": "kg",
     "images": [
@@ -896,15 +896,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.830Z",
-    "updatedAt": "2026-06-19T14:10:31.830Z"
+    "updatedAt": "2026-09-26T05:49:10.338Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af590",
     "name": "Heavy Cream",
     "category": "Dairy",
     "description": "Rich and thick heavy cream.",
-    "price": 250,
-    "discountPrice": 225,
+    "price": 248,
+    "discountPrice": 223,
     "stock": 35,
     "unit": "liter",
     "images": [
@@ -927,15 +927,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.830Z",
-    "updatedAt": "2026-06-19T14:10:31.830Z"
+    "updatedAt": "2026-09-26T05:49:10.338Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af592",
     "name": "Yogurt",
     "category": "Dairy",
     "description": "Thick and creamy yogurt.",
-    "price": 80,
-    "discountPrice": 72,
+    "price": 79,
+    "discountPrice": 71,
     "stock": 32,
     "unit": "kg",
     "images": [
@@ -958,15 +958,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.830Z",
-    "updatedAt": "2026-06-19T14:10:31.830Z"
+    "updatedAt": "2026-09-26T05:49:10.338Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af594",
     "name": "Condensed Milk",
     "category": "Dairy",
     "description": "Sweetened condensed milk.",
-    "price": 150,
-    "discountPrice": 135,
+    "price": 64,
+    "discountPrice": 57,
     "stock": 65,
     "unit": "tin",
     "images": [
@@ -989,7 +989,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.830Z",
-    "updatedAt": "2026-06-19T14:10:31.830Z"
+    "updatedAt": "2026-09-26T05:49:10.338Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af596",
