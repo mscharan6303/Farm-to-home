@@ -386,6 +386,23 @@ export default function AdminDashboard() {
     toast.success("User account removed");
   };
 
+  const handleFarmerPayoutStatusChange = (farmerId, newStatus) => {
+    try {
+      let statuses = {};
+      try {
+        statuses = JSON.parse(localStorage.getItem("admin_farmer_payout_statuses") || "{}");
+      } catch (e) {}
+
+      statuses[farmerId] = newStatus;
+      localStorage.setItem("admin_farmer_payout_statuses", JSON.stringify(statuses));
+      toast.success(`Farmer payout status updated to ${newStatus === "PAID" ? "Paid ✅" : "Unpaid ⏳"}`);
+      loadData(false);
+      notifySyncListeners();
+    } catch (e) {
+      toast.error("Failed to update farmer payout status");
+    }
+  };
+
   // Platform Monetization Calculations
   const grossGMV = orders.reduce((sum, o) => sum + Number(o.totalPrice || 0), 0);
   const platformCommissionRate = 0.10; // 10% Platform Fee
@@ -395,6 +412,11 @@ export default function AdminDashboard() {
   const totalPlatformNetProfit = platformCommissionEarned + totalDeliveryFees;
 
   // Aggregated Per-Farmer Payout Classification
+  let farmerPayoutStatuses = {};
+  try {
+    farmerPayoutStatuses = JSON.parse(localStorage.getItem("admin_farmer_payout_statuses") || "{}");
+  } catch (e) {}
+
   const farmerPayoutsMap = new Map();
   orders.forEach((o) => {
     const total = Number(o.totalPrice || 0);
@@ -412,7 +434,8 @@ export default function AdminDashboard() {
         itemsCount: 0,
         grossSales: 0,
         commissionDeducted: 0,
-        netPayoutDue: 0
+        netPayoutDue: 0,
+        payoutStatus: farmerPayoutStatuses[farmerId] || "UNPAID"
       });
     }
 
@@ -558,13 +581,13 @@ export default function AdminDashboard() {
             <div className="card" style={{ padding: "1.2rem", borderLeft: "4px solid #16a34a" }}>
               <span style={{ fontSize: "0.85rem", color: "var(--muted)", display: "block" }}>10% Platform Commission</span>
               <strong style={{ fontSize: "1.8rem", color: "#16a34a" }}>₹{platformCommissionEarned.toFixed(2)}</strong>
-              <span style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginTop: "4px" }}>Direct Platform Fee (10%)</span>
+              <span style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginTop: "4px" }}>Direct Platform Fee Retained (10%)</span>
             </div>
 
             <div className="card" style={{ padding: "1.2rem", borderLeft: "4px solid #d97706" }}>
               <span style={{ fontSize: "0.85rem", color: "var(--muted)", display: "block" }}>Net Farmer Payouts (90%)</span>
               <strong style={{ fontSize: "1.8rem", color: "#d97706" }}>₹{netFarmerPayouts.toFixed(2)}</strong>
-              <span style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginTop: "4px" }}>Transferred to registered farmers</span>
+              <span style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block", marginTop: "4px" }}>Total Money Paid / Payable to Farmers</span>
             </div>
 
             <div className="card" style={{ padding: "1.2rem", borderLeft: "4px solid #059669" }}>
@@ -575,7 +598,7 @@ export default function AdminDashboard() {
           </div>
 
           <h2 style={{ fontSize: "1.4rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "10px" }}>
-            <FiUsers color="var(--primary)" /> Farmer Payout Classification (Money to be Paid Per Farmer)
+            <FiUsers color="var(--primary)" /> Farmer Payout Classification (Money Paid / To Be Paid Per Farmer)
           </h2>
 
           {farmerPayoutList.length > 0 && (
@@ -587,8 +610,8 @@ export default function AdminDashboard() {
                     <th style={{ padding: "1rem" }}>Total Orders</th>
                     <th style={{ padding: "1rem" }}>Gross Produce Sales</th>
                     <th style={{ padding: "1rem" }}>10% Commission Deducted</th>
-                    <th style={{ padding: "1rem" }}>Net Amount To Be Paid (90%)</th>
-                    <th style={{ padding: "1rem" }}>Payout Status</th>
+                    <th style={{ padding: "1rem" }}>Net Amount (90% Payout)</th>
+                    <th style={{ padding: "1rem" }}>Payout Status (Paid / Unpaid)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -611,9 +634,22 @@ export default function AdminDashboard() {
                         ₹{f.netPayoutDue.toFixed(2)}
                       </td>
                       <td style={{ padding: "1rem" }}>
-                        <span className="badge badge-organic" style={{ fontSize: "0.82rem", padding: "4px 10px" }}>
-                          Ready for Bank Payout ✅
-                        </span>
+                        <select
+                          value={f.payoutStatus || "UNPAID"}
+                          onChange={(e) => handleFarmerPayoutStatusChange(f.id, e.target.value)}
+                          style={{
+                            padding: "6px 14px",
+                            borderRadius: "var(--radius-sm)",
+                            border: "1px solid var(--border)",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                            background: f.payoutStatus === "PAID" ? "#dcfce7" : "#fee2e2",
+                            color: f.payoutStatus === "PAID" ? "#15803d" : "#b91c1c"
+                          }}
+                        >
+                          <option value="PAID">Paid ✅</option>
+                          <option value="UNPAID">Unpaid / Pending ⏳</option>
+                        </select>
                       </td>
                     </tr>
                   ))}
