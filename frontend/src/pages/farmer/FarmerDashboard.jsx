@@ -61,6 +61,7 @@ export default function FarmerDashboard() {
         <Link to="/farmer/orders?status=all">All Orders ({stats.orders})</Link>
         <Link to="/farmer/orders?status=current">Current Active Orders</Link>
         <Link to="/farmer/orders?status=delivered">Delivered Orders</Link>
+        <Link to="/farmer/orders?status=cancelled">Cancelled Orders</Link>
         <Link to="/farmer/profile">Profile</Link>
       </aside>
       <div style={{ flex: 1 }}>

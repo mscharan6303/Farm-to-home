@@ -4,7 +4,7 @@ import api from "../services/api";
 import { getAllSyncedOrders, subscribeToSyncEvents } from "../services/cloudSync";
 import Loader from "../components/Loader";
 import toast from "react-hot-toast";
-import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiMapPin, FiCreditCard } from "react-icons/fi";
+import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiMapPin, FiCreditCard, FiXCircle } from "react-icons/fi";
 
 export default function OrderDetails() {
   const { id } = useParams();
@@ -102,35 +102,45 @@ export default function OrderDetails() {
             <h3 style={{ fontSize: '1.3rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <FiTruck color="var(--primary)" /> Live Order Tracking
             </h3>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', marginTop: '2rem' }}>
-              {['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered'].map((step, index, arr) => {
-                const statusMap = { 'Processing': 'Pending', 'Pending': 'Pending', 'Confirmed': 'Confirmed', 'Shipped': 'Shipped', 'Out for Delivery': 'Out for Delivery', 'Delivered': 'Delivered' };
-                const currentStep = statusMap[order.status] || 'Pending';
-                const isActive = arr.indexOf(currentStep) >= index;
-                return (
-                  <div key={step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, flex: 1 }}>
-                    <div style={{ 
-                      width: '30px', height: '30px', borderRadius: '50%', 
-                      background: isActive ? 'var(--primary)' : '#e5e7eb', 
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                      color: '#fff', marginBottom: '10px'
-                    }}>
-                      {isActive && <FiCheckCircle size={16} />}
-                    </div>
-                    <span style={{ fontSize: '0.85rem', textAlign: 'center', color: isActive ? 'var(--text)' : 'var(--muted)', fontWeight: isActive ? '600' : '400' }}>{step}</span>
-                  </div>
-                );
-              })}
-              {/* Line behind stepper */}
-              <div style={{ position: 'absolute', top: '15px', left: '10%', right: '10%', height: '3px', background: '#e5e7eb', zIndex: 0 }}>
-                 <div style={{ 
-                   height: '100%', background: 'var(--primary)', 
-                   width: `${Math.max(0, ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered'].indexOf(order.status)) / 4 * 100}%`,
-                   transition: 'width 0.5s ease-in-out'
-                 }}></div>
+
+            {order.status === "Cancelled" ? (
+              <div style={{ padding: '1.2rem 1.5rem', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 'var(--radius-sm)', color: '#991b1b', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '1rem' }}>
+                <FiXCircle size={28} color="#dc2626" />
+                <div>
+                  <strong style={{ display: 'block', fontSize: '1.1rem' }}>Order Cancelled ❌</strong>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 'normal' }}>This order was cancelled by the farmer/seller.</span>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', marginTop: '2rem' }}>
+                {['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered'].map((step, index, arr) => {
+                  const statusMap = { 'Processing': 'Pending', 'Pending': 'Pending', 'Confirmed': 'Confirmed', 'Shipped': 'Shipped', 'Out for Delivery': 'Out for Delivery', 'Delivered': 'Delivered' };
+                  const currentStep = statusMap[order.status] || 'Pending';
+                  const isActive = arr.indexOf(currentStep) >= index;
+                  return (
+                    <div key={step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, flex: 1 }}>
+                      <div style={{ 
+                        width: '30px', height: '30px', borderRadius: '50%', 
+                        background: isActive ? 'var(--primary)' : '#e5e7eb', 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                        color: '#fff', marginBottom: '10px'
+                      }}>
+                        {isActive && <FiCheckCircle size={16} />}
+                      </div>
+                      <span style={{ fontSize: '0.85rem', textAlign: 'center', color: isActive ? 'var(--text)' : 'var(--muted)', fontWeight: isActive ? '600' : '400' }}>{step}</span>
+                    </div>
+                  );
+                })}
+                {/* Line behind stepper */}
+                <div style={{ position: 'absolute', top: '15px', left: '10%', right: '10%', height: '3px', background: '#e5e7eb', zIndex: 0 }}>
+                   <div style={{ 
+                     height: '100%', background: 'var(--primary)', 
+                     width: `${Math.max(0, ['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered'].indexOf(order.status)) / 4 * 100}%`,
+                     transition: 'width 0.5s ease-in-out'
+                   }}></div>
+                </div>
+              </div>
+            )}
 
             {order.isSubscription && (
               <div style={{ marginTop: '2rem', padding: '1rem', background: '#f5f3ff', borderRadius: 'var(--radius-sm)', border: '1px solid #ddd6fe', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -174,15 +184,15 @@ export default function OrderDetails() {
             <div className="summary-row"><span>Delivery Fee</span> <span>{order.deliveryCharge === 0 ? "Free" : `₹${order.deliveryCharge?.toFixed(2)}`}</span></div>
             <div className="summary-row total" style={{ fontSize: '1.5rem' }}><span>Grand Total</span> <span>₹{order.totalPrice?.toFixed(2)}</span></div>
             
-            <div style={{ marginTop: '1.5rem', padding: '1.2rem', background: order.isPaid ? '#ecfdf5' : 'var(--bg-soft)', border: order.isPaid ? '1px solid #a7f3d0' : '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ marginTop: '1.5rem', padding: '1.2rem', background: order.status === "Cancelled" ? '#fef2f2' : order.isPaid ? '#ecfdf5' : 'var(--bg-soft)', border: order.status === "Cancelled" ? '1px solid #fca5a5' : order.isPaid ? '1px solid #a7f3d0' : '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.5rem' }}>
-                <FiCreditCard color={order.isPaid ? '#059669' : 'var(--primary)'} size={22} />
+                <FiCreditCard color={order.status === "Cancelled" ? '#dc2626' : order.isPaid ? '#059669' : 'var(--primary)'} size={22} />
                 <div>
-                  <strong style={{ display: 'block', fontSize: '1rem', color: order.isPaid ? '#065f46' : 'var(--text)' }}>
+                  <strong style={{ display: 'block', fontSize: '1rem', color: order.status === "Cancelled" ? '#991b1b' : order.isPaid ? '#065f46' : 'var(--text)' }}>
                     {order.paymentMethod || "Online Payment"}
                   </strong>
-                  <span className="badge" style={{ display: 'inline-block', background: order.isPaid ? '#059669' : '#d97706', color: '#fff', fontSize: '0.8rem', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', marginTop: '4px' }}>
-                    {order.isPaid ? "✅ Payment Completed" : "⏳ Cash Payment Pending"}
+                  <span className="badge" style={{ display: 'inline-block', background: order.status === "Cancelled" ? '#dc2626' : order.isPaid ? '#059669' : '#d97706', color: '#fff', fontSize: '0.8rem', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', marginTop: '4px' }}>
+                    {order.status === "Cancelled" ? "❌ Order Cancelled" : order.isPaid ? "✅ Payment Completed" : "⏳ Cash Payment Pending"}
                   </span>
                 </div>
               </div>
