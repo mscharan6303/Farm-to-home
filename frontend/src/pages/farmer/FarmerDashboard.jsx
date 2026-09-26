@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../../services/api";
+import api, { getLocalFarmerOrders } from "../../services/api";
 import { mockProducts } from "../../services/mockData";
 
 export default function FarmerDashboard() {
@@ -21,12 +21,24 @@ export default function FarmerDashboard() {
         if (Array.isArray(p.data) && p.data.length > 0) {
           pCount = Math.max(p.data.length, mockProducts.length);
         }
-        if (Array.isArray(o.data)) {
-          oCount = o.data.length;
-          revenue = o.data.filter((x) => x.isPaid).reduce((s, x) => s + x.totalPrice, 0);
-        }
+
+        let orderList = Array.isArray(o.data) ? [...o.data] : [];
+        const local = getLocalFarmerOrders();
+        const seen = new Set(orderList.map(x => x._id));
+        local.forEach(l => {
+          if (!seen.has(l._id)) {
+            seen.add(l._id);
+            orderList.push(l);
+          }
+        });
+
+        oCount = orderList.length;
+        revenue = orderList.reduce((s, x) => s + (x.totalPrice || 0), 0);
       } catch (e) {
         console.warn("Dashboard stats fetch fallback:", e);
+        const local = getLocalFarmerOrders();
+        oCount = local.length;
+        revenue = local.reduce((s, x) => s + (x.totalPrice || 0), 0);
       }
 
       setStats({ products: pCount, orders: oCount, revenue });

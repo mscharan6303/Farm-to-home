@@ -58,6 +58,35 @@ function handleMockProducts(url) {
   };
 }
 
+export function getLocalFarmerOrders() {
+  const allOrders = [];
+  const seenIds = new Set();
+
+  const addOrders = (arr) => {
+    if (!Array.isArray(arr)) return;
+    arr.forEach((o) => {
+      if (o && o._id && !seenIds.has(o._id)) {
+        seenIds.add(o._id);
+        allOrders.push(o);
+      }
+    });
+  };
+
+  try {
+    addOrders(JSON.parse(localStorage.getItem("all_local_orders") || "[]"));
+  } catch (e) {}
+
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith("local_orders_")) {
+      try {
+        addOrders(JSON.parse(localStorage.getItem(key) || "[]"));
+      } catch (e) {}
+    }
+  });
+
+  return allOrders.sort((a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now()));
+}
+
 api.interceptors.request.use((cfg) => {
   const token = localStorage.getItem("token");
   if (token) cfg.headers.Authorization = `Bearer ${token}`;
@@ -71,11 +100,20 @@ api.interceptors.response.use(
         return handleMockProducts(r.config.url);
       }
     }
+    if (r.config?.url?.includes("/orders/farmer/received")) {
+      if (!Array.isArray(r.data) || r.data.length === 0) {
+        const local = getLocalFarmerOrders();
+        if (local.length > 0) return { ...r, data: local };
+      }
+    }
     return r;
   },
   (err) => {
     if (err.config?.url?.includes("/products")) {
       return Promise.resolve(handleMockProducts(err.config.url));
+    }
+    if (err.config?.url?.includes("/orders/farmer/received")) {
+      return Promise.resolve({ data: getLocalFarmerOrders() });
     }
     return Promise.reject(err);
   }

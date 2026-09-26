@@ -88,6 +88,11 @@ export default function Checkout() {
           paymentResult: { id: txnRef, status: isPaidOnline ? "Completed" : "Pending" }
         });
         orderId = data._id;
+        try {
+          const allOrders = JSON.parse(localStorage.getItem("all_local_orders") || "[]");
+          allOrders.unshift(data);
+          localStorage.setItem("all_local_orders", JSON.stringify(allOrders));
+        } catch (e) {}
       } catch (backendErr) {
         console.warn("Backend order placement failed, creating local order record:", backendErr);
         const localOrders = JSON.parse(localStorage.getItem(`local_orders_${user?._id || user?.email || 'guest'}`) || "[]");
@@ -117,6 +122,13 @@ export default function Checkout() {
         };
         localOrders.unshift(newOrder);
         localStorage.setItem(`local_orders_${user?._id || user?.email || 'guest'}`, JSON.stringify(localOrders));
+        
+        try {
+          const allOrders = JSON.parse(localStorage.getItem("all_local_orders") || "[]");
+          allOrders.unshift(newOrder);
+          localStorage.setItem("all_local_orders", JSON.stringify(allOrders));
+        } catch (e) {}
+
         orderId = newOrder._id;
       }
 
