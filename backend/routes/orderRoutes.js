@@ -8,6 +8,7 @@ router.get("/farmer/received", protect, authorize("farmer", "admin"), c.farmerOr
 router.get("/", protect, authorize("admin"), c.allOrders);
 router.get("/:id", protect, c.getOrder);
 router.put("/status/:id", protect, authorize("farmer", "admin"), c.updateStatus);
+router.put("/pay/:id", protect, authorize("farmer", "admin"), c.updatePayment);
 router.put("/cancel/:id", protect, c.cancelOrder);
 
 module.exports = router;

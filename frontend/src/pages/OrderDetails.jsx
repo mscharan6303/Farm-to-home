@@ -25,15 +25,21 @@ export default function OrderDetails() {
       }
 
       if (found) {
-        let overrides = {};
+        let statusOverrides = {};
+        let paymentOverrides = {};
         try {
-          overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+          statusOverrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+          paymentOverrides = JSON.parse(localStorage.getItem("farmer_order_payment_overrides") || "{}");
         } catch (e) {}
 
-        if (overrides[found._id]) {
-          found = { ...found, status: overrides[found._id] };
+        let updated = { ...found };
+        if (statusOverrides[found._id]) {
+          updated.status = statusOverrides[found._id];
         }
-        setOrder(found);
+        if (paymentOverrides[found._id] !== undefined) {
+          updated.isPaid = paymentOverrides[found._id];
+        }
+        setOrder(updated);
       }
     } catch (err) {
       console.warn("OrderDetails fetch error:", err);

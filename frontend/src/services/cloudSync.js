@@ -23,7 +23,7 @@ export function notifySyncListeners() {
 }
 
 export function fetchCloudStore() {
-  let cached = { orders: [], statusOverrides: {} };
+  let cached = { orders: [], statusOverrides: {}, paymentOverrides: {} };
   try {
     const localStr = localStorage.getItem("cached_cloud_store");
     if (localStr) cached = JSON.parse(localStr);
@@ -37,6 +37,7 @@ export function fetchCloudStore() {
       if (remoteData && typeof remoteData === "object" && Array.isArray(remoteData.orders)) {
         const remoteOrders = remoteData.orders;
         const remoteOverrides = remoteData.statusOverrides || {};
+        const remotePaymentOverrides = remoteData.paymentOverrides || {};
 
         const mergedOrdersMap = new Map();
         (cached.orders || []).forEach(o => mergedOrdersMap.set(o._id, o));
@@ -44,7 +45,8 @@ export function fetchCloudStore() {
 
         const mergedStore = {
           orders: Array.from(mergedOrdersMap.values()),
-          statusOverrides: { ...(cached.statusOverrides || {}), ...remoteOverrides }
+          statusOverrides: { ...(cached.statusOverrides || {}), ...remoteOverrides },
+          paymentOverrides: { ...(cached.paymentOverrides || {}), ...remotePaymentOverrides }
         };
 
         try {
@@ -179,8 +181,67 @@ export function syncStatus(orderId, newStatus) {
   notifySyncListeners();
 }
 
+export function syncPayment(orderId, isPaid) {
+  if (!orderId) return;
+
+  // 1. Update in-memory mockOrders
+  const mOrder = mockOrders.find((o) => o._id === orderId);
+  if (mOrder) mOrder.isPaid = isPaid;
+
+  // 2. Persist payment override locally
+  let localOverrides = {};
+  try {
+    localOverrides = JSON.parse(localStorage.getItem("farmer_order_payment_overrides") || "{}");
+    localOverrides[orderId] = isPaid;
+    localStorage.setItem("farmer_order_payment_overrides", JSON.stringify(localOverrides));
+  } catch (e) {}
+
+  // 3. Update in all_local_orders
+  try {
+    let allLocal = JSON.parse(localStorage.getItem("all_local_orders") || "[]");
+    allLocal = allLocal.map((o) => (o._id === orderId ? { ...o, isPaid } : o));
+    localStorage.setItem("all_local_orders", JSON.stringify(allLocal));
+  } catch (e) {}
+
+  // 4. Update in local_orders_*
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith("local_orders_")) {
+      try {
+        let userOrders = JSON.parse(localStorage.getItem(key) || "[]");
+        if (Array.isArray(userOrders)) {
+          let updated = userOrders.map((o) => (o._id === orderId ? { ...o, isPaid } : o));
+          localStorage.setItem(key, JSON.stringify(updated));
+        }
+      } catch (e) {}
+    }
+  });
+
+  // 5. Update full cloud store cache
+  try {
+    const store = fetchCloudStore();
+    let paymentOverrides = store.paymentOverrides || {};
+    paymentOverrides[orderId] = isPaid;
+
+    let orders = Array.isArray(store.orders) ? [...store.orders] : [];
+    orders = orders.map((o) => (o._id === orderId ? { ...o, isPaid } : o));
+
+    store.paymentOverrides = paymentOverrides;
+    store.orders = orders;
+    saveCloudStore(store);
+  } catch (e) {}
+
+  // 6. Send background server POST
+  try {
+    const url = getCloudStoreUrl();
+    axios.post(url, { data: { orderId, isPaid } }, { timeout: 1500 }).catch(() => {});
+  } catch (e) {}
+
+  // 7. Broadcast event across tabs
+  notifySyncListeners();
+}
+
 export async function getAllSyncedOrders() {
-  let store = { orders: [], statusOverrides: {} };
+  let store = { orders: [], statusOverrides: {}, paymentOverrides: {} };
   try {
     const localStr = localStorage.getItem("cached_cloud_store");
     if (localStr) store = JSON.parse(localStr);
@@ -193,6 +254,7 @@ export async function getAllSyncedOrders() {
     if (remoteData && typeof remoteData === "object" && Array.isArray(remoteData.orders)) {
       const remoteOrders = remoteData.orders;
       const remoteOverrides = remoteData.statusOverrides || {};
+      const remotePaymentOverrides = remoteData.paymentOverrides || {};
 
       const mergedOrdersMap = new Map();
       (store.orders || []).forEach(o => mergedOrdersMap.set(o._id, o));
@@ -200,7 +262,8 @@ export async function getAllSyncedOrders() {
 
       store = {
         orders: Array.from(mergedOrdersMap.values()),
-        statusOverrides: { ...(store.statusOverrides || {}), ...remoteOverrides }
+        statusOverrides: { ...(store.statusOverrides || {}), ...remoteOverrides },
+        paymentOverrides: { ...(store.paymentOverrides || {}), ...remotePaymentOverrides }
       };
 
       try {
@@ -211,12 +274,15 @@ export async function getAllSyncedOrders() {
 
   const cloudOrders = Array.isArray(store.orders) ? store.orders : [];
 
-  let localOverrides = {};
+  let localStatusOverrides = {};
+  let localPaymentOverrides = {};
   try {
-    localOverrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+    localStatusOverrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+    localPaymentOverrides = JSON.parse(localStorage.getItem("farmer_order_payment_overrides") || "{}");
   } catch (e) {}
 
-  const overrides = { ...store.statusOverrides, ...localOverrides };
+  const statusOverrides = { ...store.statusOverrides, ...localStatusOverrides };
+  const paymentOverrides = { ...store.paymentOverrides, ...localPaymentOverrides };
 
   const combinedOrders = [];
   const seenIds = new Set();
@@ -227,8 +293,11 @@ export async function getAllSyncedOrders() {
       if (o && o._id && !seenIds.has(o._id)) {
         seenIds.add(o._id);
         const orderCopy = { ...o };
-        if (overrides[orderCopy._id]) {
-          orderCopy.status = overrides[orderCopy._id];
+        if (statusOverrides[orderCopy._id]) {
+          orderCopy.status = statusOverrides[orderCopy._id];
+        }
+        if (paymentOverrides[orderCopy._id] !== undefined) {
+          orderCopy.isPaid = paymentOverrides[orderCopy._id];
         }
         combinedOrders.push(orderCopy);
       }

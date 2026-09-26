@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import api, { getLocalFarmerOrders } from "../../services/api";
-import { syncStatus, subscribeToSyncEvents, notifySyncListeners } from "../../services/cloudSync";
+import { syncStatus, syncPayment, subscribeToSyncEvents, notifySyncListeners } from "../../services/cloudSync";
 import { socket } from "../../services/socket";
 import toast from "react-hot-toast";
 
@@ -63,9 +63,33 @@ export default function OrdersReceived() {
 
   const resetDemoStatuses = () => {
     localStorage.removeItem("farmer_order_status_overrides");
+    localStorage.removeItem("farmer_order_payment_overrides");
     notifySyncListeners();
-    toast.success("Order statuses reset to defaults!");
+    toast.success("Order statuses & payment overrides reset to defaults!");
     load(true);
+  };
+
+  const updatePayment = async (id, isPaid) => {
+    // 1. Optimistically update local component state
+    setOrders((prev) =>
+      prev.map((o) => (o._id === id ? { ...o, isPaid } : o))
+    );
+
+    // 2. Sync to cloud store across browsers
+    await syncPayment(id, isPaid);
+
+    // 3. Send API call if present
+    try {
+      await api.put(`/orders/pay/${id}`, { isPaid });
+    } catch (err) {
+      console.warn("API payment update failed, fallback to local persistence:", err);
+    }
+
+    if (isPaid) {
+      toast.success(`Order #${id.slice(-6).toUpperCase()} marked as Paid ✅`);
+    } else {
+      toast.success(`Order #${id.slice(-6).toUpperCase()} marked as Payment Pending ⏳`);
+    }
   };
 
   const updateStatus = async (id, newStatus, userId) => {
@@ -210,9 +234,20 @@ export default function OrdersReceived() {
                       ₹{Number(o.totalPrice || 0).toFixed(2)}
                     </td>
                     <td style={{ padding: '1rem' }}>
-                      <span className={`badge ${o.isPaid ? 'badge-organic' : 'badge-discount'}`} style={{ fontSize: '0.78rem' }}>
-                        {o.paymentMethod || "COD"} ({o.isPaid ? "Paid ✅" : "Pending ⏳"})
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
+                        <span className={`badge ${o.isPaid ? 'badge-organic' : 'badge-discount'}`} style={{ fontSize: '0.78rem' }}>
+                          {o.paymentMethod || "COD"} ({o.isPaid ? "Paid ✅" : "Pending ⏳"})
+                        </span>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', cursor: 'pointer', userSelect: 'none', color: 'var(--text)', background: 'var(--bg-soft)', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                          <input
+                            type="checkbox"
+                            checked={!!o.isPaid}
+                            onChange={(e) => updatePayment(o._id, e.target.checked)}
+                            style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: 'var(--primary)' }}
+                          />
+                          <span style={{ fontWeight: '500' }}>Mark Paid</span>
+                        </label>
+                      </div>
                     </td>
                     <td style={{ padding: '1rem' }}>
                       <select 

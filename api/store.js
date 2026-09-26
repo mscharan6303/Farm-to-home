@@ -1,6 +1,7 @@
 let store = {
   orders: [],
-  statusOverrides: {}
+  statusOverrides: {},
+  paymentOverrides: {}
 };
 
 export default function handler(req, res) {
@@ -30,6 +31,10 @@ export default function handler(req, res) {
       } else {
         store.orders.unshift(data.newOrder);
       }
+    } else if (data.orderId && data.isPaid !== undefined) {
+      if (!store.paymentOverrides) store.paymentOverrides = {};
+      store.paymentOverrides[data.orderId] = data.isPaid;
+      store.orders = store.orders.map(o => o._id === data.orderId ? { ...o, isPaid: data.isPaid } : o);
     } else if (data.orderId && data.status) {
       store.statusOverrides[data.orderId] = data.status;
       store.orders = store.orders.map(o => o._id === data.orderId ? { ...o, status: data.status } : o);
@@ -39,6 +44,7 @@ export default function handler(req, res) {
       data.orders.forEach(o => orderMap.set(o._id, o));
       store.orders = Array.from(orderMap.values());
       store.statusOverrides = { ...store.statusOverrides, ...(data.statusOverrides || {}) };
+      store.paymentOverrides = { ...(store.paymentOverrides || {}), ...(data.paymentOverrides || {}) };
     }
     return res.status(200).json({ success: true, data: store });
   }

@@ -71,6 +71,17 @@ exports.updateStatus = asyncHandler(async (req, res) => {
   res.json(order);
 });
 
+// PUT /api/orders/pay/:id
+exports.updatePayment = asyncHandler(async (req, res) => {
+  const { isPaid } = req.body;
+  const order = await Order.findById(req.params.id);
+  if (!order) { res.status(404); throw new Error("Order not found"); }
+  order.isPaid = isPaid !== undefined ? isPaid : true;
+  if (order.isPaid) { order.paidAt = new Date(); }
+  await order.save();
+  res.json(order);
+});
+
 // GET /api/orders  (admin)
 exports.allOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find().populate("user", "name email").sort({ createdAt: -1 });

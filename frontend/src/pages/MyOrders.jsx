@@ -62,30 +62,39 @@ export default function MyOrders() {
         }
       });
 
-      // 4. Force apply status overrides from cloud store and local overrides
-      let localOverrides = {};
+      // 4. Force apply status & payment overrides from cloud store and local overrides
+      let localStatusOverrides = {};
+      let localPaymentOverrides = {};
       try {
-        localOverrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+        localStatusOverrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+        localPaymentOverrides = JSON.parse(localStorage.getItem("farmer_order_payment_overrides") || "{}");
       } catch (e) {}
 
-      let cloudStoreOverrides = {};
+      let cloudStatusOverrides = {};
+      let cloudPaymentOverrides = {};
       try {
         const storeStr = localStorage.getItem("cached_cloud_store");
         if (storeStr) {
           const parsed = JSON.parse(storeStr);
-          cloudStoreOverrides = parsed.statusOverrides || {};
+          cloudStatusOverrides = parsed.statusOverrides || {};
+          cloudPaymentOverrides = parsed.paymentOverrides || {};
         }
       } catch (e) {}
 
-      const allOverrides = { ...cloudStoreOverrides, ...localOverrides };
+      const allStatusOverrides = { ...cloudStatusOverrides, ...localStatusOverrides };
+      const allPaymentOverrides = { ...cloudPaymentOverrides, ...localPaymentOverrides };
 
       const combined = Array.from(orderMap.values())
         .filter((o) => o._id !== "ORD-1790402239214")
         .map((o) => {
-          if (allOverrides[o._id]) {
-            return { ...o, status: allOverrides[o._id] };
+          const res = { ...o };
+          if (allStatusOverrides[o._id]) {
+            res.status = allStatusOverrides[o._id];
           }
-          return o;
+          if (allPaymentOverrides[o._id] !== undefined) {
+            res.isPaid = allPaymentOverrides[o._id];
+          }
+          return res;
         })
         .sort((a, b) => {
           const timeA = new Date(a.createdAt || 0).getTime();
