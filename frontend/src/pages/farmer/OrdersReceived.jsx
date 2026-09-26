@@ -11,7 +11,7 @@ export default function OrdersReceived() {
   const [loading, setLoading] = useState(true);
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const statusFilter = searchParams.get("status") || "current";
+  const statusFilter = searchParams.get("status") || "all";
 
   const load = async () => {
     setLoading(true);
@@ -39,9 +39,17 @@ export default function OrdersReceived() {
 
   useEffect(() => { load(); }, [location.search]);
 
-  const filteredOrders = orders.filter(o => 
-    statusFilter === "delivered" ? o.status === "Delivered" : o.status !== "Delivered"
-  );
+  const filteredOrders = orders.filter(o => {
+    if (statusFilter === "all") return true;
+    if (statusFilter === "delivered") return o.status === "Delivered";
+    return o.status !== "Delivered";
+  });
+
+  const resetDemoStatuses = () => {
+    localStorage.removeItem("farmer_order_status_overrides");
+    toast.success("Order statuses reset to defaults!");
+    load();
+  };
 
   const updateStatus = async (id, newStatus, userId) => {
     // 1. Optimistically update local component state immediately
@@ -101,6 +109,9 @@ export default function OrdersReceived() {
       <aside className="sidebar">
         <Link to="/farmer">Overview</Link>
         <Link to="/farmer/products">My Products</Link>
+        <Link to="/farmer/orders?status=all" className={statusFilter === "all" ? "active" : ""}>
+          All Orders ({orders.length})
+        </Link>
         <Link to="/farmer/orders?status=current" className={statusFilter === "current" ? "active" : ""}>
           Current Orders ({orders.filter(o => o.status !== "Delivered").length})
         </Link>
@@ -111,18 +122,23 @@ export default function OrdersReceived() {
       </aside>
 
       <div style={{ flex: 1 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h1 style={{ fontSize: '2rem', marginBottom: '0.2rem' }}>
-              {statusFilter === "delivered" ? "Delivered Orders 🚚" : "Current Orders Received 📦"}
+              {statusFilter === "delivered" ? "Delivered Orders 🚚" : statusFilter === "current" ? "Current Active Orders 📦" : "All Received Orders 📦"}
             </h1>
             <p className="muted" style={{ fontSize: '0.95rem' }}>
               Farmer Account: <strong>farmer@demo.com</strong>
             </p>
           </div>
-          <button className="btn btn-sm" onClick={load} style={{ padding: '0.5rem 1rem' }}>
-            🔄 Refresh Orders
-          </button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button className="btn btn-sm btn-outline" onClick={resetDemoStatuses} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+              ↺ Reset Statuses
+            </button>
+            <button className="btn btn-sm" onClick={load} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+              🔄 Refresh Orders
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -130,8 +146,22 @@ export default function OrdersReceived() {
         ) : filteredOrders.length === 0 ? (
           <div className="card text-center" style={{ padding: '4rem 2rem', borderStyle: 'dashed' }}>
             <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>📥</div>
-            <h3>No {statusFilter === "delivered" ? "delivered" : "current"} orders found</h3>
-            <p className="muted">Orders placed by customers for your products will appear here automatically.</p>
+            <h3>No {statusFilter === "delivered" ? "delivered" : "active current"} orders found</h3>
+            <p className="muted" style={{ marginBottom: '1.5rem' }}>
+              {statusFilter === "current" && orders.filter(o => o.status === "Delivered").length > 0
+                ? `All ${orders.length} orders are currently marked as Delivered.`
+                : "Orders placed by customers for your products will appear here automatically."}
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link to="/farmer/orders?status=all" className="btn btn-sm">
+                View All Orders ({orders.length})
+              </Link>
+              {statusFilter === "current" && orders.filter(o => o.status === "Delivered").length > 0 && (
+                <button onClick={resetDemoStatuses} className="btn btn-sm btn-outline">
+                  ↺ Reset Order Statuses
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <div className="table-responsive" style={{ background: '#fff', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', overflow: 'hidden' }}>
@@ -188,7 +218,7 @@ export default function OrdersReceived() {
                     </td>
                     <td style={{ padding: '1rem' }}>
                       <select 
-                        value={o.status || "Processing"} 
+                        value={o.status || "Pending"} 
                         onChange={(e) => updateStatus(o._id, e.target.value, o.user?._id || o.user)}
                         style={{ padding: '0.4rem 0.6rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontWeight: '600', fontSize: '0.85rem' }}
                       >
