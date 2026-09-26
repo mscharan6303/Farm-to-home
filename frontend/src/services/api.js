@@ -19,16 +19,41 @@ const api = axios.create({
   timeout: 1500,
 });
 
+export function getEffectiveProducts() {
+  let custom = [];
+  let deleted = [];
+  let edited = {};
+  try {
+    custom = JSON.parse(localStorage.getItem("admin_custom_products") || "[]");
+    deleted = JSON.parse(localStorage.getItem("admin_deleted_products") || "[]");
+    edited = JSON.parse(localStorage.getItem("admin_edited_products") || "{}");
+  } catch (e) {}
+
+  const deletedSet = new Set(deleted);
+  const combined = [...mockProducts, ...custom].filter(
+    (p) => p && !deletedSet.has(p._id) && !deletedSet.has(p.id)
+  );
+
+  return combined.map((p) => {
+    const id = p._id || p.id;
+    if (edited[id]) {
+      return { ...p, ...edited[id] };
+    }
+    return p;
+  });
+}
+
 function handleMockProducts(url) {
+  const effective = getEffectiveProducts();
   const singleMatch = url.match(/\/products\/([a-f0-9]{24}|prod_\d+|[a-zA-Z0-9_-]+)$/);
   if (singleMatch) {
     const id = singleMatch[1];
-    const product = mockProducts.find((p) => p._id === id || p.publicId === id) || mockProducts[0];
+    const product = effective.find((p) => p._id === id || p.publicId === id || p.id === id) || effective[0];
     return { data: product };
   }
 
   if (url.includes("/farmer/mine")) {
-    return { data: mockProducts.slice(0, 5) };
+    return { data: effective.slice(0, 10) };
   }
 
   const queryString = url.includes("?") ? url.split("?")[1] : "";
@@ -38,7 +63,7 @@ function handleMockProducts(url) {
   const page = parseInt(params.get("page") || "1");
   const limit = parseInt(params.get("limit") || "12");
 
-  let filtered = [...mockProducts];
+  let filtered = [...effective];
 
   if (category && category !== "All") {
     filtered = filtered.filter((p) => p.category.toLowerCase() === category.toLowerCase());

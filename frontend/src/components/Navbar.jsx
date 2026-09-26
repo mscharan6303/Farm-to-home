@@ -130,7 +130,7 @@ export default function Navbar() {
           )}
 
           <div className="nav-actions">
-            {(!user || (user.role !== "farmer" && user.role !== "delivery")) && (
+            {(!user || (user.role !== "farmer" && user.role !== "delivery" && user.role !== "admin")) && (
               <Link to="/cart" className="icon-btn">
                 <FiShoppingCart />
                 {count > 0 && <span className="count">{count}</span>}
@@ -142,7 +142,7 @@ export default function Navbar() {
                 <div id="google_translate_element"></div>
                 <LanguageSelector />
                 {user.role !== "farmer" && <Link to="/profile" className="icon-btn" title="Profile"><FiUser /></Link>}
-                {user.role !== "delivery" && (
+                {user.role !== "delivery" && user.role !== "admin" && (
                   <Link to="/chat" className="icon-btn" title="Messages" style={{ position: "relative" }}>
                     <FiMessageSquare />
                     {hasNewMessage && <span style={{ position: "absolute", top: "5px", right: "5px", width: "10px", height: "10px", backgroundColor: "var(--danger)", borderRadius: "50%" }}></span>}
