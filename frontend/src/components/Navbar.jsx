@@ -130,7 +130,7 @@ export default function Navbar() {
           )}
 
           <div className="nav-actions">
-            {(!user || user.role !== "farmer") && (
+            {(!user || (user.role !== "farmer" && user.role !== "delivery")) && (
               <Link to="/cart" className="icon-btn">
                 <FiShoppingCart />
                 {count > 0 && <span className="count">{count}</span>}
@@ -141,11 +141,13 @@ export default function Navbar() {
               <div className="flex gap-2 center">
                 <div id="google_translate_element"></div>
                 <LanguageSelector />
-                {user.role !== "farmer" && <Link to="/profile" className="icon-btn"><FiUser /></Link>}
-                <Link to="/chat" className="icon-btn" title="Messages" style={{ position: "relative" }}>
-                  <FiMessageSquare />
-                  {hasNewMessage && <span style={{ position: "absolute", top: "5px", right: "5px", width: "10px", height: "10px", backgroundColor: "var(--danger)", borderRadius: "50%" }}></span>}
-                </Link>
+                {user.role !== "farmer" && <Link to="/profile" className="icon-btn" title="Profile"><FiUser /></Link>}
+                {user.role !== "delivery" && (
+                  <Link to="/chat" className="icon-btn" title="Messages" style={{ position: "relative" }}>
+                    <FiMessageSquare />
+                    {hasNewMessage && <span style={{ position: "absolute", top: "5px", right: "5px", width: "10px", height: "10px", backgroundColor: "var(--danger)", borderRadius: "50%" }}></span>}
+                  </Link>
+                )}
                 <button className="btn btn-sm btn-outline" onClick={() => { logout(); nav("/"); }}>Logout</button>
               </div>
             ) : (

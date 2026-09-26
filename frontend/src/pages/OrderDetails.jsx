@@ -153,6 +153,19 @@ export default function OrderDetails() {
               </div>
             )}
 
+            {order.deliveryAgent && (
+              <div style={{ marginTop: '2rem', padding: '1rem 1.2rem', background: '#ecfdf5', borderRadius: 'var(--radius-sm)', border: '1px solid #a7f3d0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '1.8rem' }}>🛵</span>
+                  <div>
+                    <strong style={{ display: 'block', color: '#065f46', fontSize: '1.05rem' }}>Assigned Delivery Agent</strong>
+                    <span style={{ color: '#047857', fontSize: '0.9rem' }}>{order.deliveryAgent.name} &bull; Contact: {order.deliveryAgent.phone || "+91 9876543210"}</span>
+                  </div>
+                </div>
+                <span className="badge badge-organic" style={{ padding: '4px 10px', fontSize: '0.82rem' }}>Accepted & Locked</span>
+              </div>
+            )}
+
             {order.isSubscription && (
               <div style={{ marginTop: '2rem', padding: '1rem', background: '#f5f3ff', borderRadius: 'var(--radius-sm)', border: '1px solid #ddd6fe', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontSize: '1.5rem' }}>🔁</span>

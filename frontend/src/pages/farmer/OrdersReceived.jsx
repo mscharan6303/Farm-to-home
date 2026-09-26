@@ -131,9 +131,6 @@ export default function OrdersReceived() {
         <Link to="/farmer/orders?status=all" className={statusFilter === "all" ? "active" : ""}>
           All Orders ({orders.length})
         </Link>
-        <Link to="/farmer/orders?status=current" className={statusFilter === "current" ? "active" : ""}>
-          Current Orders ({orders.filter(o => o.status !== "Delivered" && o.status !== "Cancelled").length})
-        </Link>
         <Link to="/farmer/orders?status=delivered" className={statusFilter === "delivered" ? "active" : ""}>
           Delivered Orders ({orders.filter(o => o.status === "Delivered").length})
         </Link>
@@ -147,7 +144,7 @@ export default function OrdersReceived() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h1 style={{ fontSize: '2rem', marginBottom: '0.2rem' }}>
-              {statusFilter === "delivered" ? "Delivered Orders 🚚" : statusFilter === "cancelled" ? "Cancelled Orders ❌" : statusFilter === "current" ? "Current Active Orders 📦" : "All Received Orders 📦"}
+              {statusFilter === "delivered" ? "Delivered Orders 🚚" : statusFilter === "cancelled" ? "Cancelled Orders ❌" : "All Received Orders 📦"}
             </h1>
             <p className="muted" style={{ fontSize: '0.95rem' }}>
               Farmer Account: <strong>farmer@demo.com</strong>
@@ -168,22 +165,10 @@ export default function OrdersReceived() {
         ) : filteredOrders.length === 0 ? (
           <div className="card text-center" style={{ padding: '4rem 2rem', borderStyle: 'dashed' }}>
             <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>📥</div>
-            <h3>No {statusFilter === "delivered" ? "delivered" : statusFilter === "cancelled" ? "cancelled" : "active current"} orders found</h3>
+            <h3>No {statusFilter === "delivered" ? "delivered" : statusFilter === "cancelled" ? "cancelled" : "received"} orders found</h3>
             <p className="muted" style={{ marginBottom: '1.5rem' }}>
-              {statusFilter === "current" && orders.filter(o => o.status === "Delivered" || o.status === "Cancelled").length > 0
-                ? `All ${orders.length} orders are currently marked as Delivered or Cancelled.`
-                : "Orders placed by customers for your products will appear here automatically."}
+              Orders placed by customers for your products will appear here automatically.
             </p>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link to="/farmer/orders?status=all" className="btn btn-sm">
-                View All Orders ({orders.length})
-              </Link>
-              {statusFilter === "current" && orders.filter(o => o.status === "Delivered" || o.status === "Cancelled").length > 0 && (
-                <button onClick={resetDemoStatuses} className="btn btn-sm btn-outline">
-                  ↺ Reset Order Statuses
-                </button>
-              )}
-            </div>
           </div>
         ) : (
           <div className="table-responsive" style={{ background: '#fff', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', overflow: 'hidden' }}>
@@ -195,8 +180,8 @@ export default function OrdersReceived() {
                   <th style={{ padding: '1rem' }}>Date</th>
                   <th style={{ padding: '1rem' }}>Items Ordered</th>
                   <th style={{ padding: '1rem' }}>Total Amount</th>
-                  <th style={{ padding: '1rem' }}>Payment</th>
-                  <th style={{ padding: '1rem' }}>Update Status</th>
+                  <th style={{ padding: '1rem' }}>Payment Status</th>
+                  <th style={{ padding: '1rem' }}>Delivery Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -234,36 +219,21 @@ export default function OrdersReceived() {
                       ₹{Number(o.totalPrice || 0).toFixed(2)}
                     </td>
                     <td style={{ padding: '1rem' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
-                        <span className={`badge ${o.isPaid ? 'badge-organic' : 'badge-discount'}`} style={{ fontSize: '0.78rem' }}>
-                          {o.paymentMethod || "COD"} ({o.isPaid ? "Paid ✅" : "Pending ⏳"})
-                        </span>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', cursor: 'pointer', userSelect: 'none', color: 'var(--text)', background: 'var(--bg-soft)', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--border)' }}>
-                          <input
-                            type="checkbox"
-                            checked={!!o.isPaid}
-                            onChange={(e) => updatePayment(o._id, e.target.checked)}
-                            style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: 'var(--primary)' }}
-                          />
-                          <span style={{ fontWeight: '500' }}>Mark Paid</span>
-                        </label>
-                      </div>
+                      <span className={`badge ${o.isPaid ? 'badge-organic' : 'badge-discount'}`} style={{ fontSize: '0.82rem' }}>
+                        {o.paymentMethod || "COD"} ({o.isPaid ? "Paid ✅" : "Pending ⏳"})
+                      </span>
                     </td>
                     <td style={{ padding: '1rem' }}>
-                      <select 
-                        value={o.status || "Pending"} 
-                        onChange={(e) => updateStatus(o._id, e.target.value, o.user?._id || o.user)}
-                        style={{ 
-                          padding: '0.4rem 0.6rem', 
-                          borderRadius: 'var(--radius-sm)', 
-                          border: '1px solid var(--border)', 
-                          fontWeight: '600', 
-                          fontSize: '0.85rem',
-                          color: o.status === "Cancelled" ? "#ef4444" : "inherit"
-                        }}
-                      >
-                        {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                        <span className={`badge ${o.status === "Delivered" ? "badge-organic" : o.status === "Cancelled" ? "badge-danger" : "badge-discount"}`} style={{ fontSize: '0.82rem' }}>
+                          {o.status === "Delivered" ? "Delivered ✅" : o.status === "Out for Delivery" ? "Out for Delivery 🛵" : o.status === "Shipped" ? "Shipped 🚚" : o.status === "Cancelled" ? "Cancelled ❌" : `${o.status || "Confirmed"} 👍`}
+                        </span>
+                        {o.deliveryAgent && (
+                          <span style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            🛵 Driver: {o.deliveryAgent.name}
+                          </span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

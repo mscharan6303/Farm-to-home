@@ -71,8 +71,7 @@ export default function FarmerDashboard() {
         <Link to="/farmer" className="active">Overview</Link>
         <Link to="/farmer/products">My Products ({stats.products})</Link>
         <Link to="/farmer/products/new">Add Product</Link>
-        <Link to="/farmer/orders?status=all">All Orders ({stats.orders})</Link>
-        <Link to="/farmer/orders?status=current">Current Active Orders</Link>
+        <Link to="/farmer/orders?status=all">All Orders Received ({stats.orders})</Link>
         <Link to="/farmer/orders?status=delivered">Delivered Orders</Link>
         <Link to="/farmer/orders?status=cancelled">Cancelled Orders</Link>
         <Link to="/farmer/profile">Profile</Link>

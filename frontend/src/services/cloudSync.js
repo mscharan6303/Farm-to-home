@@ -240,8 +240,34 @@ export function syncPayment(orderId, isPaid) {
   notifySyncListeners();
 }
 
+export function syncAgent(orderId, agentInfo) {
+  if (!orderId || !agentInfo) return;
+
+  // 1. Update mockOrders
+  const mOrder = mockOrders.find((o) => o._id === orderId);
+  if (mOrder) mOrder.deliveryAgent = agentInfo;
+
+  // 2. Persist agent override locally
+  let localOverrides = {};
+  try {
+    localOverrides = JSON.parse(localStorage.getItem("farmer_order_agent_overrides") || "{}");
+    localOverrides[orderId] = agentInfo;
+    localStorage.setItem("farmer_order_agent_overrides", JSON.stringify(localOverrides));
+  } catch (e) {}
+
+  // 3. Update in all_local_orders
+  try {
+    let allLocal = JSON.parse(localStorage.getItem("all_local_orders") || "[]");
+    allLocal = allLocal.map((o) => (o._id === orderId ? { ...o, deliveryAgent: agentInfo } : o));
+    localStorage.setItem("all_local_orders", JSON.stringify(allLocal));
+  } catch (e) {}
+
+  // 4. Broadcast event across tabs
+  notifySyncListeners();
+}
+
 export async function getAllSyncedOrders() {
-  let store = { orders: [], statusOverrides: {}, paymentOverrides: {} };
+  let store = { orders: [], statusOverrides: {}, paymentOverrides: {}, agentOverrides: {} };
   try {
     const localStr = localStorage.getItem("cached_cloud_store");
     if (localStr) store = JSON.parse(localStr);
@@ -276,13 +302,16 @@ export async function getAllSyncedOrders() {
 
   let localStatusOverrides = {};
   let localPaymentOverrides = {};
+  let localAgentOverrides = {};
   try {
     localStatusOverrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
     localPaymentOverrides = JSON.parse(localStorage.getItem("farmer_order_payment_overrides") || "{}");
+    localAgentOverrides = JSON.parse(localStorage.getItem("farmer_order_agent_overrides") || "{}");
   } catch (e) {}
 
   const statusOverrides = { ...store.statusOverrides, ...localStatusOverrides };
   const paymentOverrides = { ...store.paymentOverrides, ...localPaymentOverrides };
+  const agentOverrides = { ...(store.agentOverrides || {}), ...localAgentOverrides };
 
   const combinedOrders = [];
   const seenIds = new Set();
@@ -298,6 +327,9 @@ export async function getAllSyncedOrders() {
         }
         if (paymentOverrides[orderCopy._id] !== undefined) {
           orderCopy.isPaid = paymentOverrides[orderCopy._id];
+        }
+        if (agentOverrides[orderCopy._id]) {
+          orderCopy.deliveryAgent = agentOverrides[orderCopy._id];
         }
         combinedOrders.push(orderCopy);
       }
