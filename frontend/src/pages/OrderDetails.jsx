@@ -52,6 +52,28 @@ export default function OrderDetails() {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'Product')}&background=1b4332&color=ffffff&size=128`;
   };
 
+  const navigate = useNavigate();
+
+  const handleDeleteOrder = async () => {
+    if (!window.confirm(`Are you sure you want to delete Order #${order._id}?`)) return;
+
+    try {
+      await api.delete(`/orders/${order._id}`).catch(() => {});
+    } catch(e) {}
+
+    const allKeys = Object.keys(localStorage).filter(k => k.startsWith("local_orders_"));
+    for (const k of allKeys) {
+      try {
+        const list = JSON.parse(localStorage.getItem(k) || "[]");
+        const updated = list.filter(o => o._id !== order._id);
+        localStorage.setItem(k, JSON.stringify(updated));
+      } catch(e) {}
+    }
+
+    toast.success(`Order #${order._id} deleted successfully!`);
+    navigate("/orders");
+  };
+
   if (loading) return <Loader />;
   if (!order) return <div className="container text-center mt-4"><h2>Order not found</h2></div>;
 
@@ -63,9 +85,18 @@ export default function OrderDetails() {
           <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>Order Details</h1>
           <p className="muted" style={{ fontSize: '1.1rem' }}>Order #{order._id}</p>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>Placed on</div>
-          <strong style={{ fontSize: '1.1rem' }}>{new Date(order.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong>
+        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+          <div>
+            <div style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>Placed on</div>
+            <strong style={{ fontSize: '1.1rem' }}>{new Date(order.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong>
+          </div>
+          <button 
+            onClick={handleDeleteOrder} 
+            className="btn btn-sm" 
+            style={{ background: 'var(--danger)', color: '#fff', border: 'none', padding: '6px 14px', fontSize: '0.85rem', cursor: 'pointer' }}
+          >
+            🗑 Delete Order
+          </button>
         </div>
       </div>
 
