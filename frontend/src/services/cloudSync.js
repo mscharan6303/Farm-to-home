@@ -3,17 +3,57 @@ import { mockOrders } from "./mockData";
 
 const CLOUD_STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a0dce0227b1af0";
 
-export async function fetchCloudStore() {
+// BroadcastChannel for instant multi-tab communication in the same browser
+const syncChannel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("farm_to_home_orders") : null;
+
+export function notifySyncListeners() {
   try {
-    const { data } = await axios.get(CLOUD_STORE_URL, { timeout: 4000 });
-    return data?.data || { orders: [], statusOverrides: {} };
+    syncChannel?.postMessage({ type: "SYNC_EVENT", timestamp: Date.now() });
+    window.dispatchEvent(new CustomEvent("farm_to_home_sync", { detail: { timestamp: Date.now() } }));
+  } catch (e) {}
+}
+
+export async function fetchCloudStore() {
+  let cached = { orders: [], statusOverrides: {} };
+  try {
+    const localStr = localStorage.getItem("cached_cloud_store");
+    if (localStr) cached = JSON.parse(localStr);
+  } catch (e) {}
+
+  try {
+    const { data } = await axios.get(CLOUD_STORE_URL, { timeout: 3000 });
+    if (data?.data && typeof data.data === "object") {
+      const remoteStore = {
+        orders: Array.isArray(data.data.orders) ? data.data.orders : [],
+        statusOverrides: data.data.statusOverrides || {}
+      };
+      
+      const mergedOrdersMap = new Map();
+      (cached.orders || []).forEach(o => mergedOrdersMap.set(o._id, o));
+      remoteStore.orders.forEach(o => mergedOrdersMap.set(o._id, o));
+
+      const mergedStore = {
+        orders: Array.from(mergedOrdersMap.values()),
+        statusOverrides: { ...(cached.statusOverrides || {}), ...(remoteStore.statusOverrides || {}) }
+      };
+
+      try {
+        localStorage.setItem("cached_cloud_store", JSON.stringify(mergedStore));
+      } catch (e) {}
+      return mergedStore;
+    }
   } catch (err) {
-    console.warn("Cloud store fetch fallback:", err);
-    return { orders: [], statusOverrides: {} };
+    console.warn("Cloud store fetch fallback to local cache:", err);
   }
+
+  return cached;
 }
 
 export async function saveCloudStore(storeData) {
+  try {
+    localStorage.setItem("cached_cloud_store", JSON.stringify(storeData));
+  } catch (e) {}
+
   try {
     await axios.put(
       CLOUD_STORE_URL,
@@ -21,7 +61,7 @@ export async function saveCloudStore(storeData) {
         name: "FarmToHome Orders Store",
         data: storeData
       },
-      { timeout: 4000 }
+      { timeout: 3000 }
     );
   } catch (err) {
     console.warn("Cloud store save fallback:", err);
@@ -30,26 +70,83 @@ export async function saveCloudStore(storeData) {
 
 export async function syncOrder(newOrder) {
   if (!newOrder || !newOrder._id) return;
+
+  // 1. Update in-memory mockOrders
+  const mockIdx = mockOrders.findIndex((o) => o._id === newOrder._id);
+  if (mockIdx >= 0) {
+    mockOrders[mockIdx] = { ...mockOrders[mockIdx], ...newOrder };
+  } else {
+    mockOrders.unshift(newOrder);
+  }
+
+  // 2. Persist in all_local_orders
+  try {
+    let allLocal = JSON.parse(localStorage.getItem("all_local_orders") || "[]");
+    const idx = allLocal.findIndex((o) => o._id === newOrder._id);
+    if (idx >= 0) {
+      allLocal[idx] = { ...allLocal[idx], ...newOrder };
+    } else {
+      allLocal.unshift(newOrder);
+    }
+    localStorage.setItem("all_local_orders", JSON.stringify(allLocal));
+  } catch (e) {}
+
+  // 3. Persist in cloud store & local cloud cache
   try {
     const store = await fetchCloudStore();
     let orders = Array.isArray(store.orders) ? [...store.orders] : [];
-    
     const index = orders.findIndex((o) => o._id === newOrder._id);
     if (index >= 0) {
       orders[index] = { ...orders[index], ...newOrder };
     } else {
       orders.unshift(newOrder);
     }
-
     store.orders = orders;
     await saveCloudStore(store);
   } catch (e) {
     console.warn("syncOrder failed:", e);
   }
+
+  // 4. Broadcast event across tabs
+  notifySyncListeners();
 }
 
 export async function syncStatus(orderId, newStatus) {
   if (!orderId || !newStatus) return;
+
+  // 1. Update in-memory mockOrders
+  const mOrder = mockOrders.find((o) => o._id === orderId);
+  if (mOrder) mOrder.status = newStatus;
+
+  // 2. Persist status override locally
+  let localOverrides = {};
+  try {
+    localOverrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+    localOverrides[orderId] = newStatus;
+    localStorage.setItem("farmer_order_status_overrides", JSON.stringify(localOverrides));
+  } catch (e) {}
+
+  // 3. Update in all_local_orders
+  try {
+    let allLocal = JSON.parse(localStorage.getItem("all_local_orders") || "[]");
+    allLocal = allLocal.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o));
+    localStorage.setItem("all_local_orders", JSON.stringify(allLocal));
+  } catch (e) {}
+
+  // 4. Update in local_orders_*
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith("local_orders_")) {
+      try {
+        let userOrders = JSON.parse(localStorage.getItem(key) || "[]");
+        if (Array.isArray(userOrders)) {
+          let updated = userOrders.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o));
+          localStorage.setItem(key, JSON.stringify(updated));
+        }
+      } catch (e) {}
+    }
+  });
+
+  // 5. Update cloud store & cache
   try {
     const store = await fetchCloudStore();
     let overrides = store.statusOverrides || {};
@@ -60,18 +157,13 @@ export async function syncStatus(orderId, newStatus) {
 
     store.statusOverrides = overrides;
     store.orders = orders;
-
-    // Save locally as well
-    try {
-      const localOverrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
-      localOverrides[orderId] = newStatus;
-      localStorage.setItem("farmer_order_status_overrides", JSON.stringify(localOverrides));
-    } catch (lErr) {}
-
     await saveCloudStore(store);
   } catch (e) {
     console.warn("syncStatus failed:", e);
   }
+
+  // 6. Broadcast event across tabs
+  notifySyncListeners();
 }
 
 export async function getAllSyncedOrders() {
@@ -121,4 +213,26 @@ export async function getAllSyncedOrders() {
   return combinedOrders.sort(
     (a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now())
   );
+}
+
+export function subscribeToSyncEvents(callback) {
+  const handleStorage = () => callback();
+  const handleCustom = () => callback();
+
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener("farm_to_home_sync", handleCustom);
+
+  let channelListener = null;
+  if (syncChannel) {
+    channelListener = () => callback();
+    syncChannel.addEventListener("message", channelListener);
+  }
+
+  return () => {
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener("farm_to_home_sync", handleCustom);
+    if (syncChannel && channelListener) {
+      syncChannel.removeEventListener("message", channelListener);
+    }
+  };
 }

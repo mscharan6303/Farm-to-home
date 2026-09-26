@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../services/api";
-import { getAllSyncedOrders } from "../services/cloudSync";
+import { getAllSyncedOrders, subscribeToSyncEvents } from "../services/cloudSync";
 import Loader from "../components/Loader";
 import toast from "react-hot-toast";
 import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiMapPin, FiCreditCard } from "react-icons/fi";
@@ -31,8 +31,14 @@ export default function OrderDetails() {
 
   useEffect(() => {
     load(true);
-    const timer = setInterval(() => load(false), 5000);
-    return () => clearInterval(timer);
+    const unsubscribe = subscribeToSyncEvents(() => {
+      load(false);
+    });
+    const timer = setInterval(() => load(false), 8000);
+    return () => {
+      unsubscribe();
+      clearInterval(timer);
+    };
   }, [id]);
 
   const getItemImage = (item) => {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import api, { getLocalFarmerOrders } from "../../services/api";
-import { syncStatus } from "../../services/cloudSync";
+import { syncStatus, subscribeToSyncEvents, notifySyncListeners } from "../../services/cloudSync";
 import { socket } from "../../services/socket";
 import toast from "react-hot-toast";
 
@@ -40,8 +40,17 @@ export default function OrdersReceived() {
 
   useEffect(() => { 
     load(true); 
-    const timer = setInterval(() => load(false), 5000);
-    return () => clearInterval(timer);
+
+    const unsubscribe = subscribeToSyncEvents(() => {
+      load(false);
+    });
+
+    const timer = setInterval(() => load(false), 8000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(timer);
+    };
   }, [location.search]);
 
   const filteredOrders = orders.filter(o => {
@@ -52,6 +61,7 @@ export default function OrdersReceived() {
 
   const resetDemoStatuses = () => {
     localStorage.removeItem("farmer_order_status_overrides");
+    notifySyncListeners();
     toast.success("Order statuses reset to defaults!");
     load(true);
   };
@@ -63,36 +73,9 @@ export default function OrdersReceived() {
     );
 
     // 2. Sync to cloud store across browsers
-    syncStatus(id, newStatus);
+    await syncStatus(id, newStatus);
 
-    // 3. Persist in status overrides map
-    try {
-      const overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
-      overrides[id] = newStatus;
-      localStorage.setItem("farmer_order_status_overrides", JSON.stringify(overrides));
-    } catch (e) {}
-
-    // 4. Update in all_local_orders
-    try {
-      let allLocal = JSON.parse(localStorage.getItem("all_local_orders") || "[]");
-      allLocal = allLocal.map((o) => (o._id === id ? { ...o, status: newStatus } : o));
-      localStorage.setItem("all_local_orders", JSON.stringify(allLocal));
-    } catch (e) {}
-
-    // 5. Update in customer specific local storage keys
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith("local_orders_")) {
-        try {
-          let userOrders = JSON.parse(localStorage.getItem(key) || "[]");
-          if (Array.isArray(userOrders)) {
-            let updated = userOrders.map((o) => (o._id === id ? { ...o, status: newStatus } : o));
-            localStorage.setItem(key, JSON.stringify(updated));
-          }
-        } catch (e) {}
-      }
-    });
-
-    // 6. Send API call to backend
+    // 3. Send API call to backend if present
     try {
       await api.put(`/orders/status/${id}`, { status: newStatus });
     } catch (err) {
@@ -143,7 +126,7 @@ export default function OrdersReceived() {
             <button className="btn btn-sm btn-outline" onClick={resetDemoStatuses} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
               ↺ Reset Statuses
             </button>
-            <button className="btn btn-sm" onClick={load} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+            <button className="btn btn-sm" onClick={() => load(true)} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
               🔄 Refresh Orders
             </button>
           </div>

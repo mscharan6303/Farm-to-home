@@ -2,47 +2,54 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api, { getLocalFarmerOrders } from "../../services/api";
 import { mockProducts } from "../../services/mockData";
+import { subscribeToSyncEvents } from "../../services/cloudSync";
 
 export default function FarmerDashboard() {
   const [stats, setStats] = useState({ products: mockProducts.length, orders: 0, revenue: 0 });
 
-  useEffect(() => {
-    (async () => {
-      let pCount = mockProducts.length;
-      let oCount = 0;
-      let revenue = 0;
+  const loadStats = async () => {
+    let pCount = mockProducts.length;
+    let oCount = 0;
+    let revenue = 0;
 
-      try {
-        const [p, o] = await Promise.all([
-          api.get("/products/farmer/mine").catch(() => ({ data: [] })),
-          api.get("/orders/farmer/received").catch(() => ({ data: [] }))
-        ]);
+    try {
+      const [p, o] = await Promise.all([
+        api.get("/products/farmer/mine").catch(() => ({ data: [] })),
+        api.get("/orders/farmer/received").catch(() => ({ data: [] }))
+      ]);
 
-        if (Array.isArray(p.data) && p.data.length > 0) {
-          pCount = Math.max(p.data.length, mockProducts.length);
-        }
-
-        let orderList = Array.isArray(o.data) ? [...o.data] : [];
-        const local = getLocalFarmerOrders();
-        const seen = new Set(orderList.map(x => x._id));
-        local.forEach(l => {
-          if (!seen.has(l._id)) {
-            seen.add(l._id);
-            orderList.push(l);
-          }
-        });
-
-        oCount = orderList.length;
-        revenue = orderList.reduce((s, x) => s + (x.totalPrice || 0), 0);
-      } catch (e) {
-        console.warn("Dashboard stats fetch fallback:", e);
-        const local = getLocalFarmerOrders();
-        oCount = local.length;
-        revenue = local.reduce((s, x) => s + (x.totalPrice || 0), 0);
+      if (Array.isArray(p.data) && p.data.length > 0) {
+        pCount = Math.max(p.data.length, mockProducts.length);
       }
 
-      setStats({ products: pCount, orders: oCount, revenue });
-    })();
+      let orderList = Array.isArray(o.data) ? [...o.data] : [];
+      const local = await getLocalFarmerOrders();
+      const seen = new Set(orderList.map(x => x._id));
+      local.forEach(l => {
+        if (!seen.has(l._id)) {
+          seen.add(l._id);
+          orderList.push(l);
+        }
+      });
+
+      oCount = orderList.length;
+      revenue = orderList.reduce((s, x) => s + (x.totalPrice || 0), 0);
+    } catch (e) {
+      console.warn("Dashboard stats fetch fallback:", e);
+      const local = await getLocalFarmerOrders();
+      oCount = local.length;
+      revenue = local.reduce((s, x) => s + (x.totalPrice || 0), 0);
+    }
+
+    setStats({ products: pCount, orders: oCount, revenue });
+  };
+
+  useEffect(() => {
+    loadStats();
+    const unsubscribe = subscribeToSyncEvents(() => {
+      loadStats();
+    });
+    return () => unsubscribe();
   }, []);
 
   return (

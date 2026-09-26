@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
-import { getAllSyncedOrders } from "../services/cloudSync";
+import { getAllSyncedOrders, subscribeToSyncEvents } from "../services/cloudSync";
 import Loader from "../components/Loader";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
@@ -25,8 +25,14 @@ export default function MyOrders() {
 
   useEffect(() => {
     load(true);
-    const timer = setInterval(() => load(false), 5000);
-    return () => clearInterval(timer);
+    const unsubscribe = subscribeToSyncEvents(() => {
+      load(false);
+    });
+    const timer = setInterval(() => load(false), 8000);
+    return () => {
+      unsubscribe();
+      clearInterval(timer);
+    };
   }, [user]);
 
   if (loading) return <Loader />;
