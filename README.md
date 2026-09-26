@@ -4,9 +4,10 @@
 
 ---
 
-## 🌐 Project Link & Live Application
+## 🌐 Project Links & Documentation
 
 *   **Official GitHub Repository:** [https://github.com/mscharan6303/Farm-to-home.git](https://github.com/mscharan6303/Farm-to-home.git)
+*   **📄 Complete Project PDF Blueprint (A to Z):** [Farm_to_Home_Complete_Documentation.pdf](Farm_to_Home_Complete_Documentation.pdf)
 *   **Live Deployed Application:** [https://farm-to-home.vercel.app](https://farm-to-home.vercel.app) *(or locally at `http://localhost:5173`)*
 
 ---
