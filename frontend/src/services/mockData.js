@@ -1536,3 +1536,70 @@ export const mockProducts = [
     "updatedAt": "2026-06-19T14:10:31.830Z"
   }
 ];
+
+export const mockOrders = [
+  {
+    _id: "ORD-984210",
+    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+    user: { name: "Ananya Sharma", email: "ananya@example.com" },
+    shippingAddress: { address: "Flat 402, Green Valley Apartments, Jubilee Hills", city: "Hyderabad" },
+    items: [
+      { name: "Fresh Lal Pyaaz (Red Onions)", quantity: 3, price: 56, image: "/images/red_onion.png" },
+      { name: "Organic Desi Tomato (Tamatar)", quantity: 2, price: 42, image: "/images/tomato.png" }
+    ],
+    itemsPrice: 252,
+    deliveryCharge: 0,
+    totalPrice: 252,
+    paymentMethod: "UPI",
+    isPaid: true,
+    status: "Processing"
+  },
+  {
+    _id: "ORD-984209",
+    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+    user: { name: "Rajesh Kumar", email: "rajesh.k@example.com" },
+    shippingAddress: { address: "Plot 12, Tech Residency, Gachibowli", city: "Hyderabad" },
+    items: [
+      { name: "Fresh Aloo (Potatoes)", quantity: 5, price: 25, image: "/images/aloo.png" },
+      { name: "Fresh Palak (Spinach)", quantity: 2, price: 20, image: "/images/spinach.png" }
+    ],
+    itemsPrice: 165,
+    deliveryCharge: 49,
+    totalPrice: 214,
+    paymentMethod: "COD",
+    isPaid: false,
+    status: "Confirmed"
+  },
+  {
+    _id: "ORD-984208",
+    createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+    user: { name: "Kavitha Reddy", email: "kavitha.reddy@gmail.com" },
+    shippingAddress: { address: "House 8-2, Road #3, Banjara Hills", city: "Hyderabad" },
+    items: [
+      { name: "Fresh Kela (Banana)", quantity: 2, price: 50, image: "/images/banana.png" },
+      { name: "Fresh Farm Buffalo Milk 1L", quantity: 1, price: 45, image: "/images/milk.png" }
+    ],
+    itemsPrice: 145,
+    deliveryCharge: 49,
+    totalPrice: 194,
+    paymentMethod: "UPI",
+    isPaid: true,
+    status: "Shipped"
+  },
+  {
+    _id: "ORD-984205",
+    createdAt: new Date(Date.now() - 3600000 * 26).toISOString(),
+    user: { name: "Suresh Babu", email: "suresh.babu@gmail.com" },
+    shippingAddress: { address: "Door 4-12, Madhapur Main Road", city: "Hyderabad" },
+    items: [
+      { name: "Fresh Shimla Mirch (Green Capsicum)", quantity: 2, price: 65, image: "/images/capsicum.png" },
+      { name: "Organic Carrots (Gajar)", quantity: 3, price: 45, image: "/images/carrot.png" }
+    ],
+    itemsPrice: 265,
+    deliveryCharge: 49,
+    totalPrice: 314,
+    paymentMethod: "UPI",
+    isPaid: true,
+    status: "Delivered"
+  }
+];

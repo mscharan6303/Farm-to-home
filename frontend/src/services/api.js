@@ -1,5 +1,5 @@
 import axios from "axios";
-import { mockProducts } from "./mockData";
+import { mockProducts, mockOrders } from "./mockData";
 
 const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
@@ -83,6 +83,8 @@ export function getLocalFarmerOrders() {
       } catch (e) {}
     }
   });
+
+  addOrders(mockOrders);
 
   return allOrders.sort((a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now()));
 }
