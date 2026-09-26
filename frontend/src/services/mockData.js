@@ -1539,6 +1539,21 @@ export const mockProducts = [
 
 export const mockOrders = [
   {
+    _id: "ORD-1790409880444",
+    createdAt: new Date().toISOString(),
+    user: { name: "Demo Customer", email: "customer@farmtohome.com" },
+    shippingAddress: { address: "123 Green Farm Avenue, Jubilee Hills", city: "Hyderabad" },
+    items: [
+      { name: "Fresh Aloo (Potatoes)", quantity: 1, price: 25, image: "/images/aloo.png" }
+    ],
+    itemsPrice: 25,
+    deliveryCharge: 49,
+    totalPrice: 74,
+    paymentMethod: "UPI (Google Pay / PhonePe)",
+    isPaid: true,
+    status: "Pending"
+  },
+  {
     _id: "ORD-984210",
     createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
     user: { name: "Ananya Sharma", email: "ananya@example.com" },
@@ -1552,7 +1567,7 @@ export const mockOrders = [
     totalPrice: 252,
     paymentMethod: "UPI",
     isPaid: true,
-    status: "Processing"
+    status: "Pending"
   },
   {
     _id: "ORD-984209",
