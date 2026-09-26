@@ -36,6 +36,7 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedFarmerModal, setSelectedFarmerModal] = useState(null);
 
   // Modal State for Adding/Editing Products
   const [showProductModal, setShowProductModal] = useState(false);
@@ -435,7 +436,8 @@ export default function AdminDashboard() {
         grossSales: 0,
         commissionDeducted: 0,
         netPayoutDue: 0,
-        payoutStatus: farmerPayoutStatuses[farmerId] || "UNPAID"
+        payoutStatus: farmerPayoutStatuses[farmerId] || "UNPAID",
+        deliveredItemsMap: new Map()
       });
     }
 
@@ -445,8 +447,39 @@ export default function AdminDashboard() {
     f.grossSales += total;
     f.commissionDeducted += total * 0.10;
     f.netPayoutDue += total * 0.90;
+
+    if (Array.isArray(o.items)) {
+      o.items.forEach((item) => {
+        const pName = item.name || item.product?.name || "Fresh Organic Produce";
+        const pImg = item.image || item.product?.images?.[0]?.url || item.product?.image || "/images/aloo.png";
+        const qty = Number(item.quantity || 1);
+        const price = Number(item.price || item.product?.discountPrice || item.product?.price || 30);
+        const itemTotal = qty * price;
+
+        if (!f.deliveredItemsMap.has(pName)) {
+          f.deliveredItemsMap.set(pName, {
+            name: pName,
+            image: pImg,
+            unitPrice: price,
+            totalQuantity: 0,
+            totalSales: 0,
+            platformProfit: 0,
+            farmerProfit: 0
+          });
+        }
+        const p = f.deliveredItemsMap.get(pName);
+        p.totalQuantity += qty;
+        p.totalSales += itemTotal;
+        p.platformProfit += itemTotal * 0.10;
+        p.farmerProfit += itemTotal * 0.90;
+      });
+    }
   });
-  const farmerPayoutList = Array.from(farmerPayoutsMap.values());
+
+  const farmerPayoutList = Array.from(farmerPayoutsMap.values()).map(f => ({
+    ...f,
+    deliveredItems: Array.from(f.deliveredItemsMap.values())
+  }));
 
   return (
     <div className="container animate-slide-up" style={{ padding: "2.5rem 1.5rem", minHeight: "85vh" }}>
@@ -618,8 +651,21 @@ export default function AdminDashboard() {
                   {farmerPayoutList.map((f) => (
                     <tr key={f.id} style={{ borderBottom: "1px solid var(--border)" }}>
                       <td style={{ padding: "1rem" }}>
-                        <div style={{ fontWeight: "bold", color: "var(--text)" }}>🌾 {f.name}</div>
+                        <div
+                          onClick={() => setSelectedFarmerModal(f)}
+                          style={{ fontWeight: "bold", color: "var(--primary)", cursor: "pointer", textDecoration: "underline" }}
+                          title="Click to view delivered products, total amount, farmer profit, and platform profit"
+                        >
+                          🌾 {f.name}
+                        </div>
                         <div style={{ fontSize: "0.8rem", color: "var(--muted)" }}>{f.email}</div>
+                        <button
+                          onClick={() => setSelectedFarmerModal(f)}
+                          className="btn btn-sm"
+                          style={{ marginTop: "4px", fontSize: "0.72rem", padding: "2px 8px", background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0" }}
+                        >
+                          📊 View Products & Profit Split
+                        </button>
                       </td>
                       <td style={{ padding: "1rem", fontWeight: "600" }}>
                         {f.ordersCount} Orders ({f.itemsCount} items)
@@ -1153,6 +1199,103 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* --- FARMER DELIVERED PRODUCTS & PROFIT BREAKDOWN MODAL --- */}
+      {selectedFarmerModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+          <div className="animate-scale-up" style={{ background: "#fff", width: "100%", maxWidth: "720px", borderRadius: "var(--radius-md)", padding: "2rem", boxShadow: "0 20px 40px rgba(0,0,0,0.2)", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <div>
+                <span style={{ background: "#dcfce7", color: "#166534", padding: "4px 10px", borderRadius: "12px", fontSize: "0.8rem", fontWeight: "bold" }}>
+                  🌾 Farmer Detailed Financial Statement
+                </span>
+                <h3 style={{ margin: "0.4rem 0 0 0" }}>{selectedFarmerModal.name}</h3>
+                <span style={{ fontSize: "0.85rem", color: "var(--muted)" }}>{selectedFarmerModal.email} — Green Acres Demo Farm</span>
+              </div>
+              <button onClick={() => setSelectedFarmerModal(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem" }}>
+                <FiX />
+              </button>
+            </div>
+
+            {/* Financial Stat Cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
+              <div style={{ background: "#f8fafc", padding: "1rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>
+                <span style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block" }}>Total Gross Amount</span>
+                <strong style={{ fontSize: "1.3rem", color: "var(--text)" }}>₹{selectedFarmerModal.grossSales.toFixed(2)}</strong>
+              </div>
+
+              <div style={{ background: "#f0fdf4", padding: "1rem", borderRadius: "var(--radius-sm)", border: "1px solid #bbf7d0" }}>
+                <span style={{ fontSize: "0.78rem", color: "#166534", display: "block" }}>Farmer Profit (90%)</span>
+                <strong style={{ fontSize: "1.3rem", color: "#15803d" }}>₹{selectedFarmerModal.netPayoutDue.toFixed(2)}</strong>
+              </div>
+
+              <div style={{ background: "#fef2f2", padding: "1rem", borderRadius: "var(--radius-sm)", border: "1px solid #fca5a5" }}>
+                <span style={{ fontSize: "0.78rem", color: "#991b1b", display: "block" }}>Platform Profit (10%)</span>
+                <strong style={{ fontSize: "1.3rem", color: "#dc2626" }}>-₹{selectedFarmerModal.commissionDeducted.toFixed(2)}</strong>
+              </div>
+
+              <div style={{ background: selectedFarmerModal.payoutStatus === "PAID" ? "#dcfce7" : "#fef3c7", padding: "1rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>
+                <span style={{ fontSize: "0.78rem", color: "var(--muted)", display: "block" }}>Payout Status</span>
+                <strong style={{ fontSize: "1.1rem", color: selectedFarmerModal.payoutStatus === "PAID" ? "#15803d" : "#b45309" }}>
+                  {selectedFarmerModal.payoutStatus === "PAID" ? "Paid ✅" : "Unpaid ⏳"}
+                </strong>
+              </div>
+            </div>
+
+            {/* Delivered Products Table */}
+            <h4 style={{ fontSize: "1.1rem", marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: "6px" }}>
+              📦 Delivered Products Breakdown
+            </h4>
+
+            {selectedFarmerModal.deliveredItems.length === 0 ? (
+              <div className="card text-center" style={{ padding: "1.5rem" }}>
+                <p className="muted" style={{ margin: 0 }}>No delivered products recorded for this farmer yet.</p>
+              </div>
+            ) : (
+              <div className="table-responsive" style={{ background: "#fff", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", overflow: "hidden" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "#f8fafc", borderBottom: "1px solid var(--border)", textAlign: "left" }}>
+                      <th style={{ padding: "0.8rem" }}>Product</th>
+                      <th style={{ padding: "0.8rem" }}>Qty Delivered</th>
+                      <th style={{ padding: "0.8rem" }}>Total Sales</th>
+                      <th style={{ padding: "0.8rem" }}>10% Platform Profit</th>
+                      <th style={{ padding: "0.8rem" }}>90% Farmer Profit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedFarmerModal.deliveredItems.map((prod, idx) => (
+                      <tr key={idx} style={{ borderBottom: "1px solid var(--border)" }}>
+                        <td style={{ padding: "0.8rem", display: "flex", alignItems: "center", gap: "10px" }}>
+                          <img src={prod.image} alt={prod.name} style={{ width: 36, height: 36, borderRadius: 6, objectFit: "cover" }} />
+                          <strong style={{ fontSize: "0.9rem" }}>{prod.name}</strong>
+                        </td>
+                        <td style={{ padding: "0.8rem", fontWeight: "600" }}>
+                          {prod.totalQuantity} units
+                        </td>
+                        <td style={{ padding: "0.8rem", fontWeight: "bold" }}>
+                          ₹{prod.totalSales.toFixed(2)}
+                        </td>
+                        <td style={{ padding: "0.8rem", fontWeight: "bold", color: "#dc2626" }}>
+                          ₹{prod.platformProfit.toFixed(2)}
+                        </td>
+                        <td style={{ padding: "0.8rem", fontWeight: "bold", color: "#16a34a" }}>
+                          ₹{prod.farmerProfit.toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div style={{ marginTop: "1.5rem", textAlign: "right" }}>
+              <button className="btn btn-outline" onClick={() => setSelectedFarmerModal(null)}>
+                Close Statement
+              </button>
+            </div>
           </div>
         </div>
       )}
