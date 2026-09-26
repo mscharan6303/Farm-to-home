@@ -70,6 +70,37 @@ export default function AdminDashboard() {
   const deliveredCount = orders.filter((o) => o.status === "Delivered").length;
   const activeCount = orders.filter((o) => o.status !== "Delivered" && o.status !== "Cancelled").length;
 
+  // Aggregated Per-Farmer Payout Classification
+  const farmerPayoutsMap = new Map();
+  orders.forEach((o) => {
+    const total = Number(o.totalPrice || 0);
+    const itemsCount = o.items?.length || 1;
+    const farmerName = "Demo Organic Farmer";
+    const farmerEmail = "farmer@demo.com";
+    const farmerId = "farmer_demo_1";
+
+    if (!farmerPayoutsMap.has(farmerId)) {
+      farmerPayoutsMap.set(farmerId, {
+        id: farmerId,
+        name: farmerName,
+        email: farmerEmail,
+        ordersCount: 0,
+        itemsCount: 0,
+        grossSales: 0,
+        commissionDeducted: 0,
+        netPayoutDue: 0
+      });
+    }
+
+    const f = farmerPayoutsMap.get(farmerId);
+    f.ordersCount += 1;
+    f.itemsCount += itemsCount;
+    f.grossSales += total;
+    f.commissionDeducted += total * 0.10;
+    f.netPayoutDue += total * 0.90;
+  });
+  const farmerPayoutList = Array.from(farmerPayoutsMap.values());
+
   return (
     <div className="container animate-slide-up" style={{ padding: "3rem 1.5rem", minHeight: "85vh" }}>
       {/* Admin Header Banner */}
@@ -134,6 +165,55 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Per-Farmer Payout Classification Table */}
+      <h2 style={{ fontSize: "1.5rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "10px" }}>
+        <FiUsers color="var(--primary)" /> Farmer Payout Classification (Money to be Paid Per Farmer)
+      </h2>
+
+      {farmerPayoutList.length > 0 && (
+        <div className="table-responsive" style={{ background: "#fff", borderRadius: "var(--radius-md)", border: "1px solid var(--border)", overflow: "hidden", marginBottom: "3rem" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "#f8fafc", borderBottom: "1px solid var(--border)", textAlign: "left" }}>
+                <th style={{ padding: "1rem" }}>Farmer Account</th>
+                <th style={{ padding: "1rem" }}>Total Orders</th>
+                <th style={{ padding: "1rem" }}>Gross Produce Sales</th>
+                <th style={{ padding: "1rem" }}>10% Platform Fee Deducted</th>
+                <th style={{ padding: "1rem" }}>Net Amount To Be Paid (90%)</th>
+                <th style={{ padding: "1rem" }}>Payout Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {farmerPayoutList.map((f) => (
+                <tr key={f.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <td style={{ padding: "1rem" }}>
+                    <div style={{ fontWeight: "bold", color: "var(--text)" }}>🌾 {f.name}</div>
+                    <div style={{ fontSize: "0.8rem", color: "var(--muted)" }}>{f.email}</div>
+                  </td>
+                  <td style={{ padding: "1rem", fontWeight: "600" }}>
+                    {f.ordersCount} Orders ({f.itemsCount} items)
+                  </td>
+                  <td style={{ padding: "1rem", fontWeight: "bold", color: "var(--text)" }}>
+                    ₹{f.grossSales.toFixed(2)}
+                  </td>
+                  <td style={{ padding: "1rem", fontWeight: "bold", color: "#dc2626" }}>
+                    -₹{f.commissionDeducted.toFixed(2)}
+                  </td>
+                  <td style={{ padding: "1rem", fontWeight: "bold", fontSize: "1.1rem", color: "#16a34a" }}>
+                    ₹{f.netPayoutDue.toFixed(2)}
+                  </td>
+                  <td style={{ padding: "1rem" }}>
+                    <span className="badge badge-organic" style={{ fontSize: "0.82rem", padding: "4px 10px" }}>
+                      Ready for Bank Payout ✅
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Orders Commission Split Breakdown Table */}
       <h2 style={{ fontSize: "1.5rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "10px" }}>

@@ -111,10 +111,30 @@ export default function FarmerDashboard() {
           </div>
         </div>
 
-        <div className="stat-grid">
-          <div className="stat"><div className="label">Products listed</div><div className="value">{stats.products}</div></div>
-          <div className="stat"><div className="label">Orders received</div><div className="value">{stats.orders}</div></div>
-          <div className="stat"><div className="label">Total earnings</div><div className="value">₹{Number(stats.revenue).toFixed(2)}</div></div>
+        <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.2rem' }}>
+          <div className="stat">
+            <div className="label">Products Listed</div>
+            <div className="value">{stats.products}</div>
+          </div>
+
+          <div className="stat">
+            <div className="label">Orders Received</div>
+            <div className="value">{stats.orders}</div>
+          </div>
+
+          <div className="stat">
+            <div className="label">Gross Sales</div>
+            <div className="value">₹{Number(stats.revenue).toFixed(2)}</div>
+            <span style={{ fontSize: '0.78rem', color: 'var(--muted)', display: 'block', marginTop: '4px' }}>Before platform fee</span>
+          </div>
+
+          <div className="stat" style={{ background: '#ecfdf5', borderColor: '#a7f3d0' }}>
+            <div className="label" style={{ color: '#065f46', fontWeight: 'bold' }}>Net Earnings (90% Take-Home)</div>
+            <div className="value" style={{ color: '#15803d' }}>₹{(stats.revenue * 0.90).toFixed(2)}</div>
+            <span style={{ fontSize: '0.78rem', color: '#166534', display: 'block', marginTop: '4px', fontWeight: '500' }}>
+              Deducted 10% platform commission (₹{(stats.revenue * 0.10).toFixed(2)})
+            </span>
+          </div>
         </div>
       </div>
     </div>
