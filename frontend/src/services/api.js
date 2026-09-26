@@ -16,7 +16,7 @@ const getApiBase = () => {
 
 const api = axios.create({
   baseURL: getApiBase(),
-  timeout: 8000,
+  timeout: 1500,
 });
 
 function handleMockProducts(url) {

@@ -23,63 +23,56 @@ export function notifySyncListeners() {
   } catch (e) {}
 }
 
-export async function fetchCloudStore() {
+export function fetchCloudStore() {
   let cached = { orders: [], statusOverrides: {} };
   try {
     const localStr = localStorage.getItem("cached_cloud_store");
     if (localStr) cached = JSON.parse(localStr);
   } catch (e) {}
 
+  // Background non-blocking sync with backend server
   try {
     const url = getCloudStoreUrl();
-    const { data } = await axios.get(url, { timeout: 3500 });
-    const remoteData = data?.data || data;
-    if (remoteData && typeof remoteData === "object") {
-      const remoteOrders = Array.isArray(remoteData.orders) ? remoteData.orders : [];
-      const remoteOverrides = remoteData.statusOverrides || {};
+    axios.get(url, { timeout: 1500 }).then(({ data }) => {
+      const remoteData = data?.data || data;
+      if (remoteData && typeof remoteData === "object") {
+        const remoteOrders = Array.isArray(remoteData.orders) ? remoteData.orders : [];
+        const remoteOverrides = remoteData.statusOverrides || {};
 
-      const mergedOrdersMap = new Map();
-      (cached.orders || []).forEach(o => mergedOrdersMap.set(o._id, o));
-      remoteOrders.forEach(o => mergedOrdersMap.set(o._id, o));
+        const mergedOrdersMap = new Map();
+        (cached.orders || []).forEach(o => mergedOrdersMap.set(o._id, o));
+        remoteOrders.forEach(o => mergedOrdersMap.set(o._id, o));
 
-      const mergedStore = {
-        orders: Array.from(mergedOrdersMap.values()),
-        statusOverrides: { ...(cached.statusOverrides || {}), ...remoteOverrides }
-      };
+        const mergedStore = {
+          orders: Array.from(mergedOrdersMap.values()),
+          statusOverrides: { ...(cached.statusOverrides || {}), ...remoteOverrides }
+        };
 
-      try {
-        localStorage.setItem("cached_cloud_store", JSON.stringify(mergedStore));
-      } catch (e) {}
-      return mergedStore;
-    }
-  } catch (err) {
-    console.warn("Cloud store fetch fallback to local cache:", err?.message);
-  }
+        try {
+          localStorage.setItem("cached_cloud_store", JSON.stringify(mergedStore));
+        } catch (e) {}
+      }
+    }).catch(() => {});
+  } catch (e) {}
 
   return cached;
 }
 
-export async function saveCloudStore(storeData) {
+export function saveCloudStore(storeData) {
   try {
     localStorage.setItem("cached_cloud_store", JSON.stringify(storeData));
   } catch (e) {}
 
   try {
     const url = getCloudStoreUrl();
-    await axios.put(
-      url,
-      { data: storeData },
-      { timeout: 3500 }
-    );
-  } catch (err) {
-    console.warn("Cloud store save fallback:", err?.message);
-  }
+    axios.put(url, { data: storeData }, { timeout: 1500 }).catch(() => {});
+  } catch (e) {}
 }
 
-export async function syncOrder(newOrder) {
+export function syncOrder(newOrder) {
   if (!newOrder || !newOrder._id) return;
 
-  // 1. Update in-memory mockOrders
+  // 1. Update in-memory mockOrders instantly
   const mockIdx = mockOrders.findIndex((o) => o._id === newOrder._id);
   if (mockIdx >= 0) {
     mockOrders[mockIdx] = { ...mockOrders[mockIdx], ...newOrder };
@@ -99,15 +92,9 @@ export async function syncOrder(newOrder) {
     localStorage.setItem("all_local_orders", JSON.stringify(allLocal));
   } catch (e) {}
 
-  // 3. Persist in backend cloud-store
+  // 3. Update full cloud store cache
   try {
-    const url = `${getCloudStoreUrl()}/order`;
-    await axios.post(url, newOrder, { timeout: 3500 }).catch(() => {});
-  } catch (e) {}
-
-  // 4. Update full cloud store cache
-  try {
-    const store = await fetchCloudStore();
+    const store = fetchCloudStore();
     let orders = Array.isArray(store.orders) ? [...store.orders] : [];
     const index = orders.findIndex((o) => o._id === newOrder._id);
     if (index >= 0) {
@@ -116,14 +103,20 @@ export async function syncOrder(newOrder) {
       orders.unshift(newOrder);
     }
     store.orders = orders;
-    await saveCloudStore(store);
+    saveCloudStore(store);
   } catch (e) {}
 
-  // 5. Broadcast event across tabs
+  // 4. Send background server POST
+  try {
+    const url = `${getCloudStoreUrl()}/order`;
+    axios.post(url, newOrder, { timeout: 1500 }).catch(() => {});
+  } catch (e) {}
+
+  // 5. Broadcast event across tabs instantly
   notifySyncListeners();
 }
 
-export async function syncStatus(orderId, newStatus) {
+export function syncStatus(orderId, newStatus) {
   if (!orderId || !newStatus) return;
 
   // 1. Update in-memory mockOrders
@@ -158,15 +151,9 @@ export async function syncStatus(orderId, newStatus) {
     }
   });
 
-  // 5. Update backend cloud-store status
+  // 5. Update full cloud store cache
   try {
-    const url = `${getCloudStoreUrl()}/status`;
-    await axios.put(url, { orderId, status: newStatus }, { timeout: 3500 }).catch(() => {});
-  } catch (e) {}
-
-  // 6. Update full cloud store cache
-  try {
-    const store = await fetchCloudStore();
+    const store = fetchCloudStore();
     let overrides = store.statusOverrides || {};
     overrides[orderId] = newStatus;
 
@@ -175,15 +162,21 @@ export async function syncStatus(orderId, newStatus) {
 
     store.statusOverrides = overrides;
     store.orders = orders;
-    await saveCloudStore(store);
+    saveCloudStore(store);
+  } catch (e) {}
+
+  // 6. Send background server PUT
+  try {
+    const url = `${getCloudStoreUrl()}/status`;
+    axios.put(url, { orderId, status: newStatus }, { timeout: 1500 }).catch(() => {});
   } catch (e) {}
 
   // 7. Broadcast event across tabs
   notifySyncListeners();
 }
 
-export async function getAllSyncedOrders() {
-  const store = await fetchCloudStore();
+export function getAllSyncedOrders() {
+  const store = fetchCloudStore();
   const cloudOrders = Array.isArray(store.orders) ? store.orders : [];
 
   let localOverrides = {};

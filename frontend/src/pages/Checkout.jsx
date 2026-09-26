@@ -94,7 +94,8 @@ export default function Checkout() {
             name: i.product.name,
             image: getProductImg(i),
             quantity: i.quantity, 
-            price: i.product.discountPrice || i.product.price 
+            price: i.product.discountPrice || i.product.price,
+            farmer: "6a15b4b1d1e36502bed909c1"
           })),
           shippingAddress: { address, city: "Hyderabad", postalCode: "500033", country: "India" },
           paymentMethod: paymentMethodLabel,
@@ -118,7 +119,8 @@ export default function Checkout() {
             name: i.product.name,
             quantity: i.quantity,
             price: i.product.discountPrice || i.product.price,
-            image: getProductImg(i)
+            image: getProductImg(i),
+            farmer: "6a15b4b1d1e36502bed909c1"
           })),
           shippingAddress: { address, city: "Hyderabad", postalCode: "500033", country: "India" },
           paymentMethod: paymentMethodLabel,
