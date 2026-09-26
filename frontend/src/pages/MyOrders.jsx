@@ -14,27 +14,17 @@ export default function MyOrders() {
   const load = async (showSpinner = true) => {
     if (showSpinner) setLoading(true);
     try {
+      const synced = await getAllSyncedOrders();
+
       let apiOrders = [];
       try {
         const r = await api.get("/orders/myorders");
         if (Array.isArray(r.data)) apiOrders = r.data;
       } catch (e) {}
 
-      const synced = await getAllSyncedOrders();
-
       const orderMap = new Map();
 
-      apiOrders.forEach((o) => {
-        if (o && o._id) orderMap.set(o._id, o);
-      });
-
-      synced.forEach((o) => {
-        if (o && o._id) {
-          const existing = orderMap.get(o._id);
-          orderMap.set(o._id, { ...existing, ...o });
-        }
-      });
-
+      // 1. Add user local storage orders first
       const userKeys = [
         `local_orders_${user?._id}`,
         `local_orders_${user?.email}`,
@@ -49,24 +39,51 @@ export default function MyOrders() {
           if (Array.isArray(list)) {
             list.forEach((o) => {
               if (o && o._id) {
-                const existing = orderMap.get(o._id);
-                orderMap.set(o._id, { ...existing, ...o });
+                orderMap.set(o._id, o);
               }
             });
           }
         } catch (e) {}
       });
 
-      let overrides = {};
+      // 2. Add API orders
+      apiOrders.forEach((o) => {
+        if (o && o._id) {
+          const existing = orderMap.get(o._id);
+          orderMap.set(o._id, { ...existing, ...o });
+        }
+      });
+
+      // 3. Add Synced orders (updating statuses)
+      synced.forEach((o) => {
+        if (o && o._id) {
+          const existing = orderMap.get(o._id);
+          orderMap.set(o._id, { ...existing, ...o, status: o.status || existing?.status });
+        }
+      });
+
+      // 4. Force apply status overrides from cloud store and local overrides
+      let localOverrides = {};
       try {
-        overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+        localOverrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
       } catch (e) {}
+
+      let cloudStoreOverrides = {};
+      try {
+        const storeStr = localStorage.getItem("cached_cloud_store");
+        if (storeStr) {
+          const parsed = JSON.parse(storeStr);
+          cloudStoreOverrides = parsed.statusOverrides || {};
+        }
+      } catch (e) {}
+
+      const allOverrides = { ...cloudStoreOverrides, ...localOverrides };
 
       const combined = Array.from(orderMap.values())
         .filter((o) => o._id !== "ORD-1790402239214")
         .map((o) => {
-          if (overrides[o._id]) {
-            return { ...o, status: overrides[o._id] };
+          if (allOverrides[o._id]) {
+            return { ...o, status: allOverrides[o._id] };
           }
           return o;
         })
@@ -112,6 +129,17 @@ export default function MyOrders() {
     } catch (e) {
       return "Recently Placed";
     }
+  };
+
+  const getStatusBadge = (status) => {
+    const s = (status || "Pending").trim();
+    if (s === "Delivered") return <span className="badge badge-organic" style={{ padding: '4px 10px', fontSize: '0.82rem' }}>Delivered ✅</span>;
+    if (s === "Shipped") return <span className="badge badge-discount" style={{ background: '#3b82f6', color: '#fff', padding: '4px 10px', fontSize: '0.82rem' }}>Shipped 🚚</span>;
+    if (s === "Out for Delivery") return <span className="badge badge-discount" style={{ background: '#8b5cf6', color: '#fff', padding: '4px 10px', fontSize: '0.82rem' }}>Out for Delivery 🛵</span>;
+    if (s === "Confirmed") return <span className="badge badge-discount" style={{ background: '#10b981', color: '#fff', padding: '4px 10px', fontSize: '0.82rem' }}>Confirmed 👍</span>;
+    if (s === "Processing") return <span className="badge badge-discount" style={{ background: '#0284c7', color: '#fff', padding: '4px 10px', fontSize: '0.82rem' }}>Processing ⏳</span>;
+    if (s === "Cancelled") return <span className="badge badge-danger" style={{ background: '#ef4444', color: '#fff', padding: '4px 10px', fontSize: '0.82rem' }}>Cancelled ❌</span>;
+    return <span className="badge badge-discount" style={{ padding: '4px 10px', fontSize: '0.82rem' }}>Pending ⏳</span>;
   };
 
   if (loading) return <Loader />;
@@ -161,11 +189,7 @@ export default function MyOrders() {
 
                   <div>
                     <span className="muted" style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</span>
-                    {o.status === "Delivered" ? (
-                      <span className="badge badge-organic">Delivered</span>
-                    ) : (
-                      <span className="badge badge-discount">{o.status || "Pending"}</span>
-                    )}
+                    {getStatusBadge(o.status)}
                   </div>
                   
                   <div style={{ color: 'var(--primary)', fontSize: '1.5rem', fontWeight: 'bold' }}>
