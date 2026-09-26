@@ -41,8 +41,9 @@ export default function ProductDetails() {
   if (!product) return <div className="container text-center mt-4"><h2>Product not found</h2></div>;
 
   const handleAdd = () => {
-    addToCart(product._id, qty);
+    addToCart(product, qty);
   };
+
 
   const handleChat = async () => {
     if (!user) {

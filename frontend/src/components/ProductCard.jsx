@@ -12,8 +12,10 @@ export default function ProductCard({ product }) {
 
   const handleAdd = (e) => {
     e.preventDefault();
-    addToCart(product._id, 1);
+    e.stopPropagation();
+    addToCart(product, 1);
   };
+
 
   return (
     <Link to={`/products/${product._id}`} className="product-card">
