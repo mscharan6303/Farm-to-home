@@ -25,7 +25,8 @@ export default function Cart() {
 
   const rawSubtotal = cart.items.reduce((acc, i) => acc + (i.product.discountPrice || i.product.price) * i.quantity, 0);
   const premiumDiscount = isPremium ? rawSubtotal * 0.10 : 0;
-  const finalTotal = rawSubtotal - premiumDiscount;
+  const deliveryFee = isPremium ? 0 : (rawSubtotal > 300 ? 0 : 49);
+  const finalTotal = rawSubtotal - premiumDiscount + deliveryFee;
 
   return (
     <div className="container animate-fade-in" style={{ padding: '4rem 1.5rem' }}>
@@ -79,9 +80,19 @@ export default function Cart() {
               <span style={{ fontWeight: '600' }}>- ₹{premiumDiscount.toFixed(2)}</span>
             </div>
           )}
-          <div className="summary-row"><span>Delivery Fee</span> <span style={{ color: 'var(--leaf)', fontWeight: '600' }}>{isPremium ? "Free (FarmPass)" : "₹50.00"}</span></div>
+          <div className="summary-row">
+            <span>Delivery Fee</span> 
+            <span style={{ color: 'var(--leaf)', fontWeight: '600' }}>
+              {deliveryFee === 0 ? (isPremium ? "Free (FarmPass)" : "Free") : `₹${deliveryFee.toFixed(2)}`}
+            </span>
+          </div>
+          {rawSubtotal > 0 && rawSubtotal <= 300 && !isPremium && (
+            <div style={{ fontSize: '0.85rem', color: 'var(--primary)', marginTop: '0.5rem', fontWeight: '500', background: 'var(--bg-soft)', padding: '0.5rem 0.8rem', borderRadius: 'var(--radius-sm)' }}>
+              🚚 Add ₹{(300 - rawSubtotal + 1).toFixed(0)} more items for <strong>FREE Delivery</strong>!
+            </div>
+          )}
           <div className="summary-row total" style={{ fontSize: '1.5rem', marginTop: '1.5rem' }}>
-            <span>Total</span> <span>₹{(finalTotal + (isPremium ? 0 : 50)).toFixed(2)}</span>
+            <span>Total</span> <span>₹{finalTotal.toFixed(2)}</span>
           </div>
           <button className="btn btn-block" onClick={() => nav("/checkout")} style={{ padding: '1.2rem', marginTop: '2rem', fontSize: '1.1rem', gap: '10px' }}>
             Proceed to Checkout <FiArrowRight />

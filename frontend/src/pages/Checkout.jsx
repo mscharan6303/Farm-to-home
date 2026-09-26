@@ -20,7 +20,7 @@ export default function Checkout() {
   const isPremium = user?.isPremium;
   const rawSubtotal = cart?.items?.reduce((acc, i) => acc + (i.product.discountPrice || i.product.price) * i.quantity, 0) || 0;
   const premiumDiscount = isPremium ? rawSubtotal * 0.10 : 0;
-  const deliveryCharge = isPremium ? 0 : (rawSubtotal > 1000 ? 0 : 49);
+  const deliveryCharge = isPremium ? 0 : (rawSubtotal > 300 ? 0 : 49);
   const totalToPay = rawSubtotal - premiumDiscount + deliveryCharge;
 
   useEffect(() => {

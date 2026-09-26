@@ -143,7 +143,7 @@ export default function OrderDetails() {
           <div className="card summary" style={{ padding: '2rem', position: 'static' }}>
             <h3 style={{ fontSize: '1.3rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>Payment Summary</h3>
             <div className="summary-row"><span>Items Total</span> <span>₹{order.itemsPrice?.toFixed(2)}</span></div>
-            <div className="summary-row"><span>Delivery Fee</span> <span>₹{order.deliveryCharge?.toFixed(2)}</span></div>
+            <div className="summary-row"><span>Delivery Fee</span> <span>{order.deliveryCharge === 0 ? "Free" : `₹${order.deliveryCharge?.toFixed(2)}`}</span></div>
             <div className="summary-row total" style={{ fontSize: '1.5rem' }}><span>Grand Total</span> <span>₹{order.totalPrice?.toFixed(2)}</span></div>
             
             <div style={{ marginTop: '1.5rem', padding: '1.2rem', background: order.isPaid ? '#ecfdf5' : 'var(--bg-soft)', border: order.isPaid ? '1px solid #a7f3d0' : '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
