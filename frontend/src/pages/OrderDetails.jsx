@@ -123,12 +123,23 @@ export default function OrderDetails() {
             <div className="summary-row"><span>Delivery Fee</span> <span>₹{order.deliveryCharge?.toFixed(2)}</span></div>
             <div className="summary-row total" style={{ fontSize: '1.5rem' }}><span>Grand Total</span> <span>₹{order.totalPrice?.toFixed(2)}</span></div>
             
-            <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--bg-soft)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <FiCreditCard color="var(--primary)" size={20} />
-              <div>
-                <strong style={{ display: 'block', fontSize: '0.9rem' }}>Payment Method</strong>
-                <span className="muted" style={{ fontSize: '0.9rem' }}>{order.paymentMethod} • {order.isPaid ? "Paid" : "Pending"}</span>
+            <div style={{ marginTop: '1.5rem', padding: '1.2rem', background: order.isPaid ? '#ecfdf5' : 'var(--bg-soft)', border: order.isPaid ? '1px solid #a7f3d0' : '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.5rem' }}>
+                <FiCreditCard color={order.isPaid ? '#059669' : 'var(--primary)'} size={22} />
+                <div>
+                  <strong style={{ display: 'block', fontSize: '1rem', color: order.isPaid ? '#065f46' : 'var(--text)' }}>
+                    {order.paymentMethod || "Online Payment"}
+                  </strong>
+                  <span className="badge" style={{ display: 'inline-block', background: order.isPaid ? '#059669' : '#d97706', color: '#fff', fontSize: '0.8rem', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', marginTop: '4px' }}>
+                    {order.isPaid ? "✅ Payment Completed" : "⏳ Cash Payment Pending"}
+                  </span>
+                </div>
               </div>
+              {order.paymentResult?.id && (
+                <div className="muted" style={{ fontSize: '0.85rem', marginTop: '0.5rem', borderTop: '1px dashed rgba(0,0,0,0.1)', paddingTop: '0.5rem' }}>
+                  Transaction Ref: <strong>{order.paymentResult.id}</strong>
+                </div>
+              )}
             </div>
           </div>
 
