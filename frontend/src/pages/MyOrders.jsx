@@ -17,38 +17,16 @@ export default function MyOrders() {
           const localOrders = JSON.parse(localStorage.getItem(`local_orders_${user?._id || user?.email || 'guest'}`) || "[]");
           const existingIds = new Set(r.data.map(o => o._id));
           const combined = [...r.data, ...localOrders.filter(l => !existingIds.has(l._id))];
-          setOrders(combined);
+          setOrders(combined.filter(o => o._id !== "ORD-1790402239214"));
         }
       })
       .catch(err => {
         console.warn("Backend myorders failed, loading local orders:", err);
         const localOrders = JSON.parse(localStorage.getItem(`local_orders_${user?._id || user?.email || 'guest'}`) || "[]");
-        setOrders(localOrders);
+        setOrders(localOrders.filter(o => o._id !== "ORD-1790402239214"));
       })
       .finally(() => setLoading(false));
   }, [user]);
-
-  const handleDeleteOrder = async (e, orderId) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this order?")) return;
-
-    try {
-      await api.delete(`/orders/${orderId}`).catch(() => {});
-    } catch(err) {}
-
-    const allKeys = Object.keys(localStorage).filter(k => k.startsWith("local_orders_"));
-    for (const k of allKeys) {
-      try {
-        const list = JSON.parse(localStorage.getItem(k) || "[]");
-        const updated = list.filter(o => o._id !== orderId);
-        localStorage.setItem(k, JSON.stringify(updated));
-      } catch(err) {}
-    }
-
-    setOrders(prev => prev.filter(o => o._id !== orderId));
-    toast.success("Order deleted successfully!");
-  };
 
   if (loading) return <Loader />;
 
@@ -103,15 +81,6 @@ export default function MyOrders() {
                       <span className="badge badge-discount">{o.status}</span>
                     )}
                   </div>
-                  
-                  <button 
-                    type="button" 
-                    onClick={(e) => handleDeleteOrder(e, o._id)}
-                    className="btn btn-sm btn-danger"
-                    style={{ background: 'var(--danger)', color: '#fff', border: 'none', padding: '4px 10px', fontSize: '0.8rem' }}
-                  >
-                    Delete
-                  </button>
                   
                   <div style={{ color: 'var(--primary)', fontSize: '1.5rem', fontWeight: 'bold' }}>
                     →
