@@ -92,6 +92,12 @@ api.interceptors.response.use(
         if (local.length > 0) return { ...r, data: local };
       }
     }
+    if (r.config?.url?.includes("/orders/myorders")) {
+      if (!Array.isArray(r.data) || r.data.length === 0) {
+        const local = await getAllSyncedOrders();
+        if (local.length > 0) return { ...r, data: local };
+      }
+    }
     return r;
   },
   async (err) => {
@@ -100,6 +106,10 @@ api.interceptors.response.use(
     }
     if (err.config?.url?.includes("/orders/farmer/received")) {
       const local = await getLocalFarmerOrders();
+      return Promise.resolve({ data: local });
+    }
+    if (err.config?.url?.includes("/orders/myorders")) {
+      const local = await getAllSyncedOrders();
       return Promise.resolve({ data: local });
     }
     return Promise.reject(err);

@@ -14,8 +14,54 @@ export default function MyOrders() {
   const load = async (showSpinner = true) => {
     if (showSpinner) setLoading(true);
     try {
+      let apiOrders = [];
+      try {
+        const r = await api.get("/orders/myorders");
+        if (Array.isArray(r.data)) apiOrders = r.data;
+      } catch (e) {}
+
       const synced = await getAllSyncedOrders();
-      setOrders(synced.filter(o => o._id !== "ORD-1790402239214"));
+
+      const orderMap = new Map();
+
+      apiOrders.forEach((o) => {
+        if (o && o._id) orderMap.set(o._id, o);
+      });
+
+      synced.forEach((o) => {
+        if (o && o._id) {
+          const existing = orderMap.get(o._id);
+          orderMap.set(o._id, { ...existing, ...o });
+        }
+      });
+
+      const userKeys = [
+        `local_orders_${user?._id}`,
+        `local_orders_${user?.email}`,
+        "all_local_orders",
+        "local_orders_guest"
+      ];
+
+      userKeys.forEach((k) => {
+        if (!k) return;
+        try {
+          const list = JSON.parse(localStorage.getItem(k) || "[]");
+          if (Array.isArray(list)) {
+            list.forEach((o) => {
+              if (o && o._id) {
+                const existing = orderMap.get(o._id);
+                orderMap.set(o._id, { ...existing, ...o });
+              }
+            });
+          }
+        } catch (e) {}
+      });
+
+      const combined = Array.from(orderMap.values())
+        .filter((o) => o._id !== "ORD-1790402239214")
+        .sort((a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now()));
+
+      setOrders(combined);
     } catch (err) {
       console.warn("MyOrders sync error:", err);
     } finally {
@@ -85,7 +131,7 @@ export default function MyOrders() {
                     {o.status === "Delivered" ? (
                       <span className="badge badge-organic">Delivered</span>
                     ) : (
-                      <span className="badge badge-discount">{o.status}</span>
+                      <span className="badge badge-discount">{o.status || "Pending"}</span>
                     )}
                   </div>
                   
