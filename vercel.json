@@ -4,6 +4,10 @@
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
+      "source": "/api/store",
+      "destination": "/api/store.js"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/backend/server.js"
     },

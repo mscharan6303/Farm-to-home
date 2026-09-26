@@ -2,15 +2,14 @@ import axios from "axios";
 import { mockOrders } from "./mockData";
 
 const getCloudStoreUrl = () => {
-  if (import.meta.env.VITE_API_URL) return `${import.meta.env.VITE_API_URL}/cloud-store`;
   if (typeof window !== "undefined") {
     const origin = window.location.origin;
     if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      return "http://localhost:5000/api/cloud-store";
+      return "http://localhost:5000/api/store";
     }
-    return `${origin}/api/cloud-store`;
+    return `${origin}/api/store`;
   }
-  return "/api/cloud-store";
+  return "/api/store";
 };
 
 // BroadcastChannel for instant multi-tab communication in the same browser
@@ -35,8 +34,8 @@ export function fetchCloudStore() {
     const url = getCloudStoreUrl();
     axios.get(url, { timeout: 1500 }).then(({ data }) => {
       const remoteData = data?.data || data;
-      if (remoteData && typeof remoteData === "object") {
-        const remoteOrders = Array.isArray(remoteData.orders) ? remoteData.orders : [];
+      if (remoteData && typeof remoteData === "object" && Array.isArray(remoteData.orders)) {
+        const remoteOrders = remoteData.orders;
         const remoteOverrides = remoteData.statusOverrides || {};
 
         const mergedOrdersMap = new Map();
@@ -70,7 +69,7 @@ export function saveCloudStore(storeData) {
 
   try {
     const url = getCloudStoreUrl();
-    axios.put(url, { data: storeData }, { timeout: 1500 }).catch(() => {});
+    axios.post(url, { data: storeData }, { timeout: 1500 }).catch(() => {});
   } catch (e) {}
 }
 
@@ -113,8 +112,8 @@ export function syncOrder(newOrder) {
 
   // 4. Send background server POST
   try {
-    const url = `${getCloudStoreUrl()}/order`;
-    axios.post(url, newOrder, { timeout: 1500 }).catch(() => {});
+    const url = getCloudStoreUrl();
+    axios.post(url, { data: { newOrder } }, { timeout: 1500 }).catch(() => {});
   } catch (e) {}
 
   // 5. Broadcast event across tabs instantly
@@ -172,8 +171,8 @@ export function syncStatus(orderId, newStatus) {
 
   // 6. Send background server PUT
   try {
-    const url = `${getCloudStoreUrl()}/status`;
-    axios.put(url, { orderId, status: newStatus }, { timeout: 1500 }).catch(() => {});
+    const url = getCloudStoreUrl();
+    axios.post(url, { data: { orderId, status: newStatus } }, { timeout: 1500 }).catch(() => {});
   } catch (e) {}
 
   // 7. Broadcast event across tabs
@@ -191,8 +190,8 @@ export async function getAllSyncedOrders() {
     const url = getCloudStoreUrl();
     const res = await axios.get(url, { timeout: 1500 }).catch(() => null);
     const remoteData = res?.data?.data || res?.data;
-    if (remoteData && typeof remoteData === "object") {
-      const remoteOrders = Array.isArray(remoteData.orders) ? remoteData.orders : [];
+    if (remoteData && typeof remoteData === "object" && Array.isArray(remoteData.orders)) {
+      const remoteOrders = remoteData.orders;
       const remoteOverrides = remoteData.statusOverrides || {};
 
       const mergedOrdersMap = new Map();
