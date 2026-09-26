@@ -1,5 +1,6 @@
 import axios from "axios";
 import { mockProducts, mockOrders } from "./mockData";
+import { getAllSyncedOrders } from "./cloudSync";
 
 const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
@@ -58,43 +59,8 @@ function handleMockProducts(url) {
   };
 }
 
-export function getLocalFarmerOrders() {
-  const allOrders = [];
-  const seenIds = new Set();
-  let overrides = {};
-  try {
-    overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
-  } catch (e) {}
-
-  const addOrders = (arr) => {
-    if (!Array.isArray(arr)) return;
-    arr.forEach((o) => {
-      if (o && o._id && !seenIds.has(o._id)) {
-        seenIds.add(o._id);
-        const orderCopy = { ...o };
-        if (overrides[orderCopy._id]) {
-          orderCopy.status = overrides[orderCopy._id];
-        }
-        allOrders.push(orderCopy);
-      }
-    });
-  };
-
-  try {
-    addOrders(JSON.parse(localStorage.getItem("all_local_orders") || "[]"));
-  } catch (e) {}
-
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith("local_orders_")) {
-      try {
-        addOrders(JSON.parse(localStorage.getItem(key) || "[]"));
-      } catch (e) {}
-    }
-  });
-
-  addOrders(mockOrders);
-
-  return allOrders.sort((a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now()));
+export async function getLocalFarmerOrders() {
+  return await getAllSyncedOrders();
 }
 
 api.interceptors.request.use((cfg) => {
@@ -104,7 +70,7 @@ api.interceptors.request.use((cfg) => {
 });
 
 api.interceptors.response.use(
-  (r) => {
+  async (r) => {
     if (r.config?.url?.includes("/products")) {
       if (r.data && Array.isArray(r.data.products) && r.data.products.length === 0) {
         return handleMockProducts(r.config.url);
@@ -112,18 +78,19 @@ api.interceptors.response.use(
     }
     if (r.config?.url?.includes("/orders/farmer/received")) {
       if (!Array.isArray(r.data) || r.data.length === 0) {
-        const local = getLocalFarmerOrders();
+        const local = await getLocalFarmerOrders();
         if (local.length > 0) return { ...r, data: local };
       }
     }
     return r;
   },
-  (err) => {
+  async (err) => {
     if (err.config?.url?.includes("/products")) {
       return Promise.resolve(handleMockProducts(err.config.url));
     }
     if (err.config?.url?.includes("/orders/farmer/received")) {
-      return Promise.resolve({ data: getLocalFarmerOrders() });
+      const local = await getLocalFarmerOrders();
+      return Promise.resolve({ data: local });
     }
     return Promise.reject(err);
   }

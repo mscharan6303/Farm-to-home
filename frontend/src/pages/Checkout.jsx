@@ -5,6 +5,8 @@ import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import toast from "react-hot-toast";
 
+import { syncOrder } from "../services/cloudSync";
+
 export default function Checkout() {
   const { cart, clearCart } = useCart();
   const { user } = useAuth();
@@ -82,6 +84,7 @@ export default function Checkout() {
             localStorage.setItem(k, JSON.stringify(filtered));
           } catch (e) {}
         });
+        syncOrder(orderObj);
       };
 
       try {

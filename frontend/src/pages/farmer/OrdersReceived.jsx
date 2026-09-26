@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import api, { getLocalFarmerOrders } from "../../services/api";
+import { syncStatus } from "../../services/cloudSync";
 import { socket } from "../../services/socket";
 import toast from "react-hot-toast";
 
@@ -13,12 +14,12 @@ export default function OrdersReceived() {
   const searchParams = new URLSearchParams(location.search);
   const statusFilter = searchParams.get("status") || "all";
 
-  const load = async () => {
-    setLoading(true);
+  const load = async (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
     try {
       const res = await api.get("/orders/farmer/received");
       let data = Array.isArray(res.data) ? res.data : [];
-      const local = getLocalFarmerOrders();
+      const local = await getLocalFarmerOrders();
       const seen = new Set(data.map(o => o._id));
       local.forEach(l => {
         if (!seen.has(l._id)) {
@@ -30,14 +31,18 @@ export default function OrdersReceived() {
       setOrders(data);
     } catch (err) {
       console.warn("Failed to fetch farmer orders from API, fallback to local storage:", err);
-      const local = getLocalFarmerOrders();
+      const local = await getLocalFarmerOrders();
       setOrders(local.sort((a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now())));
     } finally {
-      setLoading(false);
+      if (showSpinner) setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, [location.search]);
+  useEffect(() => { 
+    load(true); 
+    const timer = setInterval(() => load(false), 5000);
+    return () => clearInterval(timer);
+  }, [location.search]);
 
   const filteredOrders = orders.filter(o => {
     if (statusFilter === "all") return true;
@@ -48,7 +53,7 @@ export default function OrdersReceived() {
   const resetDemoStatuses = () => {
     localStorage.removeItem("farmer_order_status_overrides");
     toast.success("Order statuses reset to defaults!");
-    load();
+    load(true);
   };
 
   const updateStatus = async (id, newStatus, userId) => {
@@ -57,21 +62,24 @@ export default function OrdersReceived() {
       prev.map((o) => (o._id === id ? { ...o, status: newStatus } : o))
     );
 
-    // 2. Persist in status overrides map
+    // 2. Sync to cloud store across browsers
+    syncStatus(id, newStatus);
+
+    // 3. Persist in status overrides map
     try {
       const overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
       overrides[id] = newStatus;
       localStorage.setItem("farmer_order_status_overrides", JSON.stringify(overrides));
     } catch (e) {}
 
-    // 3. Update in all_local_orders
+    // 4. Update in all_local_orders
     try {
       let allLocal = JSON.parse(localStorage.getItem("all_local_orders") || "[]");
       allLocal = allLocal.map((o) => (o._id === id ? { ...o, status: newStatus } : o));
       localStorage.setItem("all_local_orders", JSON.stringify(allLocal));
     } catch (e) {}
 
-    // 4. Update in customer specific local storage keys
+    // 5. Update in customer specific local storage keys
     Object.keys(localStorage).forEach((key) => {
       if (key.startsWith("local_orders_")) {
         try {
@@ -84,7 +92,7 @@ export default function OrdersReceived() {
       }
     });
 
-    // 5. Send API call to backend
+    // 6. Send API call to backend
     try {
       await api.put(`/orders/status/${id}`, { status: newStatus });
     } catch (err) {

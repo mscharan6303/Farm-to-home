@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../services/api";
+import { getAllSyncedOrders } from "../services/cloudSync";
 import Loader from "../components/Loader";
 import toast from "react-hot-toast";
 import { FiPackage, FiTruck, FiCheckCircle, FiClock, FiMapPin, FiCreditCard } from "react-icons/fi";
@@ -10,34 +11,28 @@ export default function OrderDetails() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let overrides = {};
+  const load = async (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
     try {
-      overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
-    } catch (e) {}
+      const allOrders = await getAllSyncedOrders();
+      const found = allOrders.find((o) => o._id === id);
+      if (found) {
+        setOrder(found);
+      } else {
+        const r = await api.get(`/orders/${id}`);
+        setOrder(r.data);
+      }
+    } catch (err) {
+      console.warn("OrderDetails fetch error:", err);
+    } finally {
+      if (showSpinner) setLoading(false);
+    }
+  };
 
-    const applyOverride = (o) => (o && overrides[o._id] ? { ...o, status: overrides[o._id] } : o);
-
-    api.get(`/orders/${id}`)
-      .then(r => setOrder(applyOverride(r.data)))
-      .catch((err) => {
-        console.warn("Backend order details fetch failed, searching local orders:", err);
-        const allKeys = Object.keys(localStorage).filter(k => k.startsWith("local_orders_") || k === "all_local_orders");
-        let found = null;
-        for (const k of allKeys) {
-          try {
-            const list = JSON.parse(localStorage.getItem(k) || "[]");
-            found = list.find(o => o._id === id);
-            if (found) break;
-          } catch(e) {}
-        }
-        if (!found) {
-          const { mockOrders } = require("../services/mockData");
-          found = mockOrders?.find(o => o._id === id);
-        }
-        if (found) setOrder(applyOverride(found));
-      })
-      .finally(() => setLoading(false));
+  useEffect(() => {
+    load(true);
+    const timer = setInterval(() => load(false), 5000);
+    return () => clearInterval(timer);
   }, [id]);
 
   const getItemImage = (item) => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
+import { getAllSyncedOrders } from "../services/cloudSync";
 import Loader from "../components/Loader";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
@@ -10,30 +11,22 @@ export default function MyOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let overrides = {};
+  const load = async (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
     try {
-      overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
-    } catch (e) {}
+      const synced = await getAllSyncedOrders();
+      setOrders(synced.filter(o => o._id !== "ORD-1790402239214"));
+    } catch (err) {
+      console.warn("MyOrders sync error:", err);
+    } finally {
+      if (showSpinner) setLoading(false);
+    }
+  };
 
-    const applyOverrides = (list) =>
-      list.map((o) => (overrides[o._id] ? { ...o, status: overrides[o._id] } : o));
-
-    api.get("/orders/myorders")
-      .then(r => {
-        if (Array.isArray(r.data)) {
-          const localOrders = JSON.parse(localStorage.getItem(`local_orders_${user?._id || user?.email || 'guest'}`) || "[]");
-          const existingIds = new Set(r.data.map(o => o._id));
-          const combined = [...r.data, ...localOrders.filter(l => !existingIds.has(l._id))];
-          setOrders(applyOverrides(combined.filter(o => o._id !== "ORD-1790402239214")));
-        }
-      })
-      .catch(err => {
-        console.warn("Backend myorders failed, loading local orders:", err);
-        const localOrders = JSON.parse(localStorage.getItem(`local_orders_${user?._id || user?.email || 'guest'}`) || "[]");
-        setOrders(applyOverrides(localOrders.filter(o => o._id !== "ORD-1790402239214")));
-      })
-      .finally(() => setLoading(false));
+  useEffect(() => {
+    load(true);
+    const timer = setInterval(() => load(false), 5000);
+    return () => clearInterval(timer);
   }, [user]);
 
   if (loading) return <Loader />;
