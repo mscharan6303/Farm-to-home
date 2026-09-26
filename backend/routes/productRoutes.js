@@ -4,6 +4,7 @@ const { upload } = require("../config/cloudinary");
 const c = require("../controllers/productController");
 
 router.get("/", c.getProducts);
+router.all("/sync-daily-prices", c.syncDailyPrices);
 router.get("/farmer/mine", protect, authorize("farmer", "admin"), c.getMyProducts);
 router.get("/:id", c.getProduct);
 router.post("/", protect, authorize("farmer", "admin"), upload.array("images", 5), c.createProduct);

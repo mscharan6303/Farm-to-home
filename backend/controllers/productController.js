@@ -87,3 +87,10 @@ exports.getMyProducts = asyncHandler(async (req, res) => {
   const products = await Product.find({ farmer: req.user._id }).sort({ createdAt: -1 });
   res.json(products);
 });
+
+// POST or GET /api/products/sync-daily-prices
+exports.syncDailyPrices = asyncHandler(async (req, res) => {
+  const { runMarketUpdate } = require("../utils/marketUpdater");
+  const result = await runMarketUpdate();
+  res.json({ message: "Daily AP Market Prices synced successfully from Andhra Pradesh Mandi", ...result });
+});

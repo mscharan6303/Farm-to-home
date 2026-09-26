@@ -4,8 +4,8 @@ export const mockProducts = [
     "name": "Fresh Aloo (Potatoes)",
     "category": "Vegetables",
     "description": "Premium quality potatoes.",
-    "price": 35,
-    "discountPrice": 32,
+    "price": 31,
+    "discountPrice": 25,
     "stock": 39,
     "unit": "kg",
     "images": [
@@ -28,15 +28,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.826Z",
-    "updatedAt": "2026-06-19T14:10:31.826Z"
+    "updatedAt": "2026-09-26T05:39:48.393Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af558",
     "name": "Lal Pyaaz (Red Onions)",
     "category": "Vegetables",
     "description": "Crisp and pungent red onions.",
-    "price": 45,
-    "discountPrice": 41,
+    "price": 68,
+    "discountPrice": 56,
     "stock": 51,
     "unit": "kg",
     "images": [
@@ -59,15 +59,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.828Z",
-    "updatedAt": "2026-06-19T14:10:31.828Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af55a",
     "name": "Desi Tamatar (Tomatoes)",
     "category": "Vegetables",
     "description": "Juicy, tangy country tomatoes.",
-    "price": 50,
-    "discountPrice": 45,
+    "price": 31,
+    "discountPrice": 25,
     "stock": 37,
     "unit": "kg",
     "images": [
@@ -90,7 +90,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.828Z",
-    "updatedAt": "2026-06-19T14:10:31.828Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af55c",
@@ -98,7 +98,7 @@ export const mockProducts = [
     "category": "Vegetables",
     "description": "Fresh and crisp cauliflower.",
     "price": 40,
-    "discountPrice": 36,
+    "discountPrice": 33,
     "stock": 61,
     "unit": "kg",
     "images": [
@@ -121,15 +121,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.828Z",
-    "updatedAt": "2026-06-19T14:10:31.828Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af55e",
     "name": "Bhindi (Okra)",
     "category": "Vegetables",
     "description": "Tender green okra.",
-    "price": 60,
-    "discountPrice": 54,
+    "price": 35,
+    "discountPrice": 29,
     "stock": 43,
     "unit": "kg",
     "images": [
@@ -152,15 +152,15 @@ export const mockProducts = [
     "sold": 1,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:44:31.369Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af560",
     "name": "Baingan (Eggplant)",
     "category": "Vegetables",
     "description": "Large, glossy purple eggplants.",
-    "price": 45,
-    "discountPrice": 41,
+    "price": 44,
+    "discountPrice": 36,
     "stock": 27,
     "unit": "kg",
     "images": [
@@ -183,15 +183,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af562",
     "name": "Gajar (Carrots)",
     "category": "Vegetables",
     "description": "Sweet and crunchy orange carrots.",
-    "price": 50,
-    "discountPrice": 45,
+    "price": 47,
+    "discountPrice": 39,
     "stock": 21,
     "unit": "kg",
     "images": [
@@ -214,15 +214,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af564",
     "name": "Shimla Mirch (Capsicum)",
     "category": "Vegetables",
     "description": "Fresh green bell peppers.",
-    "price": 70,
-    "discountPrice": 63,
+    "price": 51,
+    "discountPrice": 42,
     "stock": 28,
     "unit": "kg",
     "images": [
@@ -245,15 +245,15 @@ export const mockProducts = [
     "sold": 1,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:44:31.373Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af566",
     "name": "Alphonso Aam (Mangoes)",
     "category": "Fruits",
     "description": "The king of fruits.",
-    "price": 350,
-    "discountPrice": 315,
+    "price": 73,
+    "discountPrice": 61,
     "stock": 34,
     "unit": "dozen",
     "images": [
@@ -276,7 +276,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af568",
@@ -314,8 +314,8 @@ export const mockProducts = [
     "name": "Kela (Bananas)",
     "category": "Fruits",
     "description": "Fresh and sweet yellow bananas.",
-    "price": 60,
-    "discountPrice": 54,
+    "price": 10,
+    "discountPrice": 8,
     "stock": 31,
     "unit": "dozen",
     "images": [
@@ -338,7 +338,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af56c",
@@ -500,8 +500,8 @@ export const mockProducts = [
     "name": "Palak (Spinach)",
     "category": "Leafy Vegetables",
     "description": "Crisp, iron-rich spinach leaves.",
-    "price": 30,
-    "discountPrice": 27,
+    "price": 11,
+    "discountPrice": 9,
     "stock": 44,
     "unit": "bunch",
     "images": [
@@ -524,15 +524,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af578",
     "name": "Dhaniya (Coriander)",
     "category": "Leafy Vegetables",
     "description": "Fresh green coriander leaves.",
-    "price": 20,
-    "discountPrice": 18,
+    "price": 16,
+    "discountPrice": 13,
     "stock": 59,
     "unit": "bunch",
     "images": [
@@ -555,15 +555,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af57a",
     "name": "Pudina (Mint)",
     "category": "Leafy Vegetables",
     "description": "Refreshing mint leaves.",
-    "price": 15,
-    "discountPrice": 14,
+    "price": 8,
+    "discountPrice": 6,
     "stock": 61,
     "unit": "bunch",
     "images": [
@@ -586,15 +586,15 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af57c",
     "name": "Cabbage",
     "category": "Leafy Vegetables",
     "description": "Crunchy green cabbage.",
-    "price": 40,
-    "discountPrice": 36,
+    "price": 32,
+    "discountPrice": 26,
     "stock": 40,
     "unit": "kg",
     "images": [
@@ -617,7 +617,7 @@ export const mockProducts = [
     "sold": 0,
     "__v": 0,
     "createdAt": "2026-06-19T14:10:31.829Z",
-    "updatedAt": "2026-06-19T14:10:31.829Z"
+    "updatedAt": "2026-09-26T05:39:48.395Z"
   },
   {
     "_id": "6a354dd7e913bb8a010af57e",

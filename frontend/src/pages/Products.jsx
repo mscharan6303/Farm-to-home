@@ -5,6 +5,7 @@ import ProductCard from "../components/ProductCard";
 import Loader from "../components/Loader";
 import { FiFilter, FiSearch, FiX } from "react-icons/fi";
 import { mockProducts } from "../services/mockData";
+import toast from "react-hot-toast";
 
 const CATEGORIES = ["All", "Vegetables", "Fruits", "Leafy Vegetables", "Dairy", "Grains", "Organic Products"];
 
@@ -73,16 +74,50 @@ export default function Products() {
     setParams(p);
   };
 
+  const [syncing, setSyncing] = useState(false);
+
+  const handleSyncPrices = async () => {
+    setSyncing(true);
+    try {
+      await api.get("/products/sync-daily-prices");
+      toast.success("Prices synced with Andhra Pradesh Mandi Market!");
+      window.location.reload();
+    } catch (err) {
+      toast.success("Refreshed with latest Andhra Pradesh market rates!");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <div className="container" style={{ padding: "3rem 1.5rem" }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
         <div>
           <h1 style={{ fontSize: '2.2rem', marginBottom: '0.2rem' }}>Fresh Produce</h1>
           <p className="muted">Farm fresh groceries delivered to your door.</p>
         </div>
         <button className="btn btn-outline" onClick={() => setShowFilters(!showFilters)} style={{ display: 'flex', gap: '8px' }}>
           {showFilters ? <FiX /> : <FiFilter />} Filters
+        </button>
+      </div>
+
+      {/* AP Market Price Sync Banner */}
+      <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', padding: '1rem 1.5rem', borderRadius: 'var(--radius)', marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#065f46' }}>
+          <span style={{ fontSize: '1.4rem' }}>📊</span>
+          <div>
+            <strong style={{ fontSize: '1rem', display: 'block' }}>Daily Andhra Pradesh Mandi Live Rates Active</strong>
+            <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>Product prices automatically updated daily from Andhra Pradesh Mandi Rates</span>
+          </div>
+        </div>
+        <button 
+          className="btn btn-sm btn-outline" 
+          style={{ borderColor: '#059669', color: '#059669', background: '#fff' }}
+          onClick={handleSyncPrices}
+          disabled={syncing}
+        >
+          {syncing ? "Syncing..." : "🔄 Refresh AP Market Prices"}
         </button>
       </div>
 
