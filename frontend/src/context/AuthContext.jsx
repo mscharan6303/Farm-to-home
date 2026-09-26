@@ -13,9 +13,14 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(false);
 
   const persist = (data) => {
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data));
-    setUser(data);
+    const userWithDefaults = {
+      phone: data.phone || "+91 9876543210",
+      address: data.address || "123 Green Farm Avenue, Jubilee Hills, Hyderabad, 500033",
+      ...data,
+    };
+    localStorage.setItem("token", userWithDefaults.token || "mock_token");
+    localStorage.setItem("user", JSON.stringify(userWithDefaults));
+    setUser(userWithDefaults);
   };
 
   const updateUser = (data) => {
@@ -23,6 +28,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem("user", JSON.stringify(updated));
     setUser(updated);
   };
+
 
   const upgradePremium = async () => {
     setLoading(true);

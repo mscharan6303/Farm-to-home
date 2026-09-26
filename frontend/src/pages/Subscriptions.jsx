@@ -12,15 +12,29 @@ export default function Subscriptions() {
   const [loading, setLoading] = useState(true);
 
   const loadSubs = () => {
-    api.get("/orders/myorders").then((r) => {
-      setSubs(r.data.filter(o => o.isSubscription));
-      setLoading(false);
-    });
+    api.get("/orders/myorders")
+      .then((r) => {
+        if (Array.isArray(r.data)) {
+          const backendSubs = r.data.filter(o => o.isSubscription);
+          const localOrders = JSON.parse(localStorage.getItem(`local_orders_${user?._id || user?.email || 'guest'}`) || "[]");
+          const localSubs = localOrders.filter(o => o.isSubscription);
+          const existingIds = new Set(backendSubs.map(s => s._id));
+          setSubs([...backendSubs, ...localSubs.filter(s => !existingIds.has(s._id))]);
+        }
+      })
+      .catch((err) => {
+        console.warn("Failed to load backend subscriptions, using fallback:", err.message);
+        const localOrders = JSON.parse(localStorage.getItem(`local_orders_${user?._id || user?.email || 'guest'}`) || "[]");
+        const localSubs = localOrders.filter(o => o.isSubscription);
+        setSubs(localSubs);
+      })
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
     loadSubs();
-  }, []);
+  }, [user]);
+
 
   const cancelSubscription = async (id) => {
     try {

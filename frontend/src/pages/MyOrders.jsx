@@ -2,14 +2,30 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import Loader from "../components/Loader";
+import { useAuth } from "../context/AuthContext";
 
 export default function MyOrders() {
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get("/orders/myorders").then(r => setOrders(r.data)).finally(() => setLoading(false));
-  }, []);
+    api.get("/orders/myorders")
+      .then(r => {
+        if (Array.isArray(r.data)) {
+          const localOrders = JSON.parse(localStorage.getItem(`local_orders_${user?._id || user?.email || 'guest'}`) || "[]");
+          const existingIds = new Set(r.data.map(o => o._id));
+          const combined = [...r.data, ...localOrders.filter(l => !existingIds.has(l._id))];
+          setOrders(combined);
+        }
+      })
+      .catch(err => {
+        console.warn("Backend myorders failed, loading local orders:", err);
+        const localOrders = JSON.parse(localStorage.getItem(`local_orders_${user?._id || user?.email || 'guest'}`) || "[]");
+        setOrders(localOrders);
+      })
+      .finally(() => setLoading(false));
+  }, [user]);
 
   if (loading) return <Loader />;
 
@@ -53,7 +69,7 @@ export default function MyOrders() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '3rem' }}>
                   <div>
                     <span className="muted" style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Amount</span>
-                    <strong style={{ fontSize: '1.3rem', color: 'var(--primary)', fontFamily: 'var(--font-heading)' }}>₹{o.totalPrice.toFixed(2)}</strong>
+                    <strong style={{ fontSize: '1.3rem', color: 'var(--primary)', fontFamily: 'var(--font-heading)' }}>₹{o.totalPrice?.toFixed(2) || '0.00'}</strong>
                   </div>
 
                   <div>

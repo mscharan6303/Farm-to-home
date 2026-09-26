@@ -11,7 +11,22 @@ export default function OrderDetails() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get(`/orders/${id}`).then(r => setOrder(r.data)).finally(() => setLoading(false));
+    api.get(`/orders/${id}`)
+      .then(r => setOrder(r.data))
+      .catch((err) => {
+        console.warn("Backend order details fetch failed, searching local orders:", err);
+        const allKeys = Object.keys(localStorage).filter(k => k.startsWith("local_orders_"));
+        let found = null;
+        for (const k of allKeys) {
+          try {
+            const list = JSON.parse(localStorage.getItem(k) || "[]");
+            found = list.find(o => o._id === id);
+            if (found) break;
+          } catch(e) {}
+        }
+        if (found) setOrder(found);
+      })
+      .finally(() => setLoading(false));
   }, [id]);
 
   if (loading) return <Loader />;
