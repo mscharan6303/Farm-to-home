@@ -49,7 +49,12 @@ export function fetchCloudStore() {
         };
 
         try {
-          localStorage.setItem("cached_cloud_store", JSON.stringify(mergedStore));
+          const prevStr = localStorage.getItem("cached_cloud_store");
+          const nextStr = JSON.stringify(mergedStore);
+          localStorage.setItem("cached_cloud_store", nextStr);
+          if (prevStr !== nextStr) {
+            notifySyncListeners();
+          }
         } catch (e) {}
       }
     }).catch(() => {});
@@ -175,8 +180,36 @@ export function syncStatus(orderId, newStatus) {
   notifySyncListeners();
 }
 
-export function getAllSyncedOrders() {
-  const store = fetchCloudStore();
+export async function getAllSyncedOrders() {
+  let store = { orders: [], statusOverrides: {} };
+  try {
+    const localStr = localStorage.getItem("cached_cloud_store");
+    if (localStr) store = JSON.parse(localStr);
+  } catch (e) {}
+
+  try {
+    const url = getCloudStoreUrl();
+    const res = await axios.get(url, { timeout: 1500 }).catch(() => null);
+    const remoteData = res?.data?.data || res?.data;
+    if (remoteData && typeof remoteData === "object") {
+      const remoteOrders = Array.isArray(remoteData.orders) ? remoteData.orders : [];
+      const remoteOverrides = remoteData.statusOverrides || {};
+
+      const mergedOrdersMap = new Map();
+      (store.orders || []).forEach(o => mergedOrdersMap.set(o._id, o));
+      remoteOrders.forEach(o => mergedOrdersMap.set(o._id, o));
+
+      store = {
+        orders: Array.from(mergedOrdersMap.values()),
+        statusOverrides: { ...(store.statusOverrides || {}), ...remoteOverrides }
+      };
+
+      try {
+        localStorage.setItem("cached_cloud_store", JSON.stringify(store));
+      } catch (e) {}
+    }
+  } catch (err) {}
+
   const cloudOrders = Array.isArray(store.orders) ? store.orders : [];
 
   let localOverrides = {};
