@@ -15,12 +15,25 @@ export default function OrderDetails() {
     if (showSpinner) setLoading(true);
     try {
       const allOrders = await getAllSyncedOrders();
-      const found = allOrders.find((o) => o._id === id);
+      let found = allOrders.find((o) => o._id === id);
+      
+      if (!found) {
+        try {
+          const r = await api.get(`/orders/${id}`);
+          found = r.data;
+        } catch (e) {}
+      }
+
       if (found) {
+        let overrides = {};
+        try {
+          overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+        } catch (e) {}
+
+        if (overrides[found._id]) {
+          found = { ...found, status: overrides[found._id] };
+        }
         setOrder(found);
-      } else {
-        const r = await api.get(`/orders/${id}`);
-        setOrder(r.data);
       }
     } catch (err) {
       console.warn("OrderDetails fetch error:", err);
@@ -34,7 +47,8 @@ export default function OrderDetails() {
     const unsubscribe = subscribeToSyncEvents(() => {
       load(false);
     });
-    const timer = setInterval(() => load(false), 8000);
+    // Fast 2-second polling for real-time live stepper updates
+    const timer = setInterval(() => load(false), 2000);
     return () => {
       unsubscribe();
       clearInterval(timer);
@@ -187,8 +201,8 @@ export default function OrderDetails() {
             </h3>
             <p style={{ lineHeight: '1.6', color: 'var(--text)' }}>
               <strong>{order.user?.name}</strong><br />
-              {order.shippingAddress.address}<br />
-              {order.shippingAddress.city}, {order.shippingAddress.country} - {order.shippingAddress.postalCode}
+              {order.shippingAddress?.address}<br />
+              {order.shippingAddress?.city}, {order.shippingAddress?.country} - {order.shippingAddress?.postalCode}
             </p>
           </div>
         </div>

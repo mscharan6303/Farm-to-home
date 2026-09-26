@@ -57,8 +57,19 @@ export default function MyOrders() {
         } catch (e) {}
       });
 
+      let overrides = {};
+      try {
+        overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+      } catch (e) {}
+
       const combined = Array.from(orderMap.values())
         .filter((o) => o._id !== "ORD-1790402239214")
+        .map((o) => {
+          if (overrides[o._id]) {
+            return { ...o, status: overrides[o._id] };
+          }
+          return o;
+        })
         .sort((a, b) => {
           const timeA = new Date(a.createdAt || 0).getTime();
           const timeB = new Date(b.createdAt || 0).getTime();
@@ -78,7 +89,8 @@ export default function MyOrders() {
     const unsubscribe = subscribeToSyncEvents(() => {
       load(false);
     });
-    const timer = setInterval(() => load(false), 8000);
+    // Fast 2-second polling interval for real-time status updates across devices
+    const timer = setInterval(() => load(false), 2000);
     return () => {
       unsubscribe();
       clearInterval(timer);
