@@ -2,10 +2,20 @@ import axios from "axios";
 import { mockProducts, mockOrders } from "./mockData";
 import { getAllSyncedOrders } from "./cloudSync";
 
-const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const getApiBase = () => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (typeof window !== "undefined") {
+    const origin = window.location.origin;
+    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+      return "http://localhost:5000/api";
+    }
+    return `${origin}/api`;
+  }
+  return "/api";
+};
 
 const api = axios.create({
-  baseURL: apiBase,
+  baseURL: getApiBase(),
   timeout: 8000,
 });
 

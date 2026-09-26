@@ -1,7 +1,17 @@
 import axios from "axios";
 import { mockOrders } from "./mockData";
 
-const CLOUD_STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a0dce0227b1af0";
+const getCloudStoreUrl = () => {
+  if (import.meta.env.VITE_API_URL) return `${import.meta.env.VITE_API_URL}/cloud-store`;
+  if (typeof window !== "undefined") {
+    const origin = window.location.origin;
+    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+      return "http://localhost:5000/api/cloud-store";
+    }
+    return `${origin}/api/cloud-store`;
+  }
+  return "/api/cloud-store";
+};
 
 // BroadcastChannel for instant multi-tab communication in the same browser
 const syncChannel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("farm_to_home_orders") : null;
@@ -21,20 +31,20 @@ export async function fetchCloudStore() {
   } catch (e) {}
 
   try {
-    const { data } = await axios.get(CLOUD_STORE_URL, { timeout: 3000 });
-    if (data?.data && typeof data.data === "object") {
-      const remoteStore = {
-        orders: Array.isArray(data.data.orders) ? data.data.orders : [],
-        statusOverrides: data.data.statusOverrides || {}
-      };
-      
+    const url = getCloudStoreUrl();
+    const { data } = await axios.get(url, { timeout: 3500 });
+    const remoteData = data?.data || data;
+    if (remoteData && typeof remoteData === "object") {
+      const remoteOrders = Array.isArray(remoteData.orders) ? remoteData.orders : [];
+      const remoteOverrides = remoteData.statusOverrides || {};
+
       const mergedOrdersMap = new Map();
       (cached.orders || []).forEach(o => mergedOrdersMap.set(o._id, o));
-      remoteStore.orders.forEach(o => mergedOrdersMap.set(o._id, o));
+      remoteOrders.forEach(o => mergedOrdersMap.set(o._id, o));
 
       const mergedStore = {
         orders: Array.from(mergedOrdersMap.values()),
-        statusOverrides: { ...(cached.statusOverrides || {}), ...(remoteStore.statusOverrides || {}) }
+        statusOverrides: { ...(cached.statusOverrides || {}), ...remoteOverrides }
       };
 
       try {
@@ -43,7 +53,7 @@ export async function fetchCloudStore() {
       return mergedStore;
     }
   } catch (err) {
-    console.warn("Cloud store fetch fallback to local cache:", err);
+    console.warn("Cloud store fetch fallback to local cache:", err?.message);
   }
 
   return cached;
@@ -55,16 +65,14 @@ export async function saveCloudStore(storeData) {
   } catch (e) {}
 
   try {
+    const url = getCloudStoreUrl();
     await axios.put(
-      CLOUD_STORE_URL,
-      {
-        name: "FarmToHome Orders Store",
-        data: storeData
-      },
-      { timeout: 3000 }
+      url,
+      { data: storeData },
+      { timeout: 3500 }
     );
   } catch (err) {
-    console.warn("Cloud store save fallback:", err);
+    console.warn("Cloud store save fallback:", err?.message);
   }
 }
 
@@ -91,7 +99,13 @@ export async function syncOrder(newOrder) {
     localStorage.setItem("all_local_orders", JSON.stringify(allLocal));
   } catch (e) {}
 
-  // 3. Persist in cloud store & local cloud cache
+  // 3. Persist in backend cloud-store
+  try {
+    const url = `${getCloudStoreUrl()}/order`;
+    await axios.post(url, newOrder, { timeout: 3500 }).catch(() => {});
+  } catch (e) {}
+
+  // 4. Update full cloud store cache
   try {
     const store = await fetchCloudStore();
     let orders = Array.isArray(store.orders) ? [...store.orders] : [];
@@ -103,11 +117,9 @@ export async function syncOrder(newOrder) {
     }
     store.orders = orders;
     await saveCloudStore(store);
-  } catch (e) {
-    console.warn("syncOrder failed:", e);
-  }
+  } catch (e) {}
 
-  // 4. Broadcast event across tabs
+  // 5. Broadcast event across tabs
   notifySyncListeners();
 }
 
@@ -146,7 +158,13 @@ export async function syncStatus(orderId, newStatus) {
     }
   });
 
-  // 5. Update cloud store & cache
+  // 5. Update backend cloud-store status
+  try {
+    const url = `${getCloudStoreUrl()}/status`;
+    await axios.put(url, { orderId, status: newStatus }, { timeout: 3500 }).catch(() => {});
+  } catch (e) {}
+
+  // 6. Update full cloud store cache
   try {
     const store = await fetchCloudStore();
     let overrides = store.statusOverrides || {};
@@ -158,11 +176,9 @@ export async function syncStatus(orderId, newStatus) {
     store.statusOverrides = overrides;
     store.orders = orders;
     await saveCloudStore(store);
-  } catch (e) {
-    console.warn("syncStatus failed:", e);
-  }
+  } catch (e) {}
 
-  // 6. Broadcast event across tabs
+  // 7. Broadcast event across tabs
   notifySyncListeners();
 }
 

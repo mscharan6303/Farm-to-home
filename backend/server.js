@@ -52,9 +52,8 @@ app.use("/api/products", require("./routes/productRoutes"));
 app.use("/api/cart", require("./routes/cartRoutes"));
 app.use("/api/orders", require("./routes/orderRoutes"));
 app.use("/api/reviews", require("./routes/reviewRoutes"));
-
-
 app.use("/api/chat", require("./routes/chatRoutes"));
+app.use("/api/cloud-store", require("./routes/cloudStoreRoutes"));
 
 app.use(notFound);
 app.use(errorHandler);
