@@ -21,6 +21,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.5,
@@ -52,6 +53,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.1,
@@ -83,6 +85,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.4,
@@ -114,6 +117,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.4,
@@ -145,6 +149,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.3,
@@ -176,6 +181,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.5,
@@ -207,6 +213,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.6,
@@ -238,6 +245,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.4,
@@ -269,6 +277,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.2,
@@ -300,6 +309,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.1,
@@ -331,6 +341,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.5,
@@ -362,6 +373,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.3,
@@ -393,6 +405,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.3,
@@ -424,6 +437,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.2,
@@ -455,6 +469,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.5,
@@ -486,6 +501,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4,
@@ -517,6 +533,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.9,
@@ -548,6 +565,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.3,
@@ -579,6 +597,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.5,
@@ -610,6 +629,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.6,
@@ -641,6 +661,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.1,
@@ -672,6 +693,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 5,
@@ -703,6 +725,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.4,
@@ -734,6 +757,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4,
@@ -765,6 +789,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.2,
@@ -796,6 +821,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.4,
@@ -827,6 +853,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4,
@@ -858,6 +885,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.1,
@@ -889,6 +917,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 5,
@@ -920,6 +949,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.2,
@@ -951,6 +981,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.6,
@@ -982,6 +1013,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.7,
@@ -1013,6 +1045,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.4,
@@ -1044,6 +1077,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.2,
@@ -1075,6 +1109,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.7,
@@ -1106,6 +1141,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.1,
@@ -1137,6 +1173,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.4,
@@ -1168,6 +1205,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 5,
@@ -1199,6 +1237,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.8,
@@ -1230,6 +1269,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.8,
@@ -1261,6 +1301,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.1,
@@ -1292,6 +1333,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.8,
@@ -1323,6 +1365,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 5,
@@ -1354,6 +1397,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.5,
@@ -1385,6 +1429,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.1,
@@ -1416,6 +1461,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.3,
@@ -1447,6 +1493,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.6,
@@ -1478,6 +1525,7 @@ export const mockProducts = [
     "farmer": {
       "_id": "6a15b4b1d1e36502bed909c1",
       "name": "Demo Farmer",
+      "email": "farmer@demo.com",
       "farmName": "Green Acres Demo Farm"
     },
     "rating": 4.9,

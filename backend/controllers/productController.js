@@ -22,7 +22,7 @@ exports.getProducts = asyncHandler(async (req, res) => {
 
   const count = await Product.countDocuments(filter);
   const products = await Product.find(filter)
-    .populate("farmer", "name farmName verified")
+    .populate("farmer", "name farmName email verified")
     .sort(sortObj)
     .limit(Number(limit))
     .skip((Number(page) - 1) * Number(limit));
@@ -31,7 +31,7 @@ exports.getProducts = asyncHandler(async (req, res) => {
 
 // GET /api/products/:id
 exports.getProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id).populate("farmer", "name farmName phone profileImage verified");
+  const product = await Product.findById(req.params.id).populate("farmer", "name farmName email phone profileImage verified");
   if (!product) { res.status(404); throw new Error("Product not found"); }
   res.json(product);
 });
