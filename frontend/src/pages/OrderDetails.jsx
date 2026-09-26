@@ -239,6 +239,21 @@ export default function OrderDetails() {
               {order.shippingAddress?.city}, {order.shippingAddress?.country} - {order.shippingAddress?.postalCode}
             </p>
           </div>
+
+          {/* Delivery Partner Details */}
+          <div className="card" style={{ padding: '2rem' }}>
+            <h3 style={{ fontSize: '1.3rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <FiTruck color="var(--primary)" /> Delivery Partner Details
+            </h3>
+            <p style={{ lineHeight: '1.6', color: 'var(--text)', margin: 0 }}>
+              <strong>🛵 {order.deliveryAgentName || "Anil Kumar (Delivery Partner)"}</strong><br />
+              <span className="muted">Email: {order.deliveryAgentEmail || "delivery@demo.com"}</span><br />
+              <span className="muted">Contact: +91 98765 43210</span><br />
+              <span className="badge badge-organic" style={{ marginTop: '8px', display: 'inline-block' }}>
+                {order.status === "Delivered" ? "Delivered by Anil Kumar ✅" : "Assigned for Delivery 🛵"}
+              </span>
+            </p>
+          </div>
         </div>
       </div>
     </div>

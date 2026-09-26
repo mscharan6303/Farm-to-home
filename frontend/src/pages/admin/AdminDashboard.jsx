@@ -35,8 +35,18 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [users, setUsers] = useState([]);
+  const [videoAds, setVideoAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFarmerModal, setSelectedFarmerModal] = useState(null);
+
+  // Modal State for Video Ads
+  const [showAdminAdModal, setShowAdminAdModal] = useState(false);
+  const [adminAdForm, setAdminAdForm] = useState({
+    title: "",
+    videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-farmer-hands-holding-fresh-tomatoes-42984-large.mp4",
+    productId: "",
+    durationDays: 7
+  });
 
   // Modal State for Adding/Editing Products
   const [showProductModal, setShowProductModal] = useState(false);
@@ -114,10 +124,74 @@ export default function AdminDashboard() {
       } catch (e) {}
       setUsers([...DEFAULT_USERS, ...customUsers]);
 
+      // Load Video Ads
+      try {
+        const rawAds = localStorage.getItem("farmer_video_ads");
+        const adsList = rawAds ? JSON.parse(rawAds) : [];
+        setVideoAds(adsList);
+      } catch (e) {}
+
     } catch (err) {
       console.warn("Failed to load admin dashboard data:", err);
     } finally {
       if (showSpinner) setLoading(false);
+    }
+  };
+
+  const handleAdminCreateAd = (e) => {
+    e.preventDefault();
+    if (!adminAdForm.title.trim()) {
+      toast.error("Please enter an ad title");
+      return;
+    }
+    const selProd = products.find(p => (p._id || p.id) === adminAdForm.productId) || products[0] || mockProducts[0];
+    const durationDays = Number(adminAdForm.durationDays || 7);
+    const createdAt = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString();
+
+    const newAd = {
+      id: `ad_${Date.now()}`,
+      farmerName: "Platform Admin Promotion",
+      farmerEmail: "admin@demo.com",
+      title: adminAdForm.title.trim(),
+      videoUrl: adminAdForm.videoUrl || "https://assets.mixkit.co/videos/preview/mixkit-farmer-hands-holding-fresh-tomatoes-42984-large.mp4",
+      productId: selProd?._id || selProd?.id,
+      product: {
+        _id: selProd?._id || selProd?.id,
+        name: selProd?.name,
+        price: selProd?.price,
+        discountPrice: selProd?.discountPrice || selProd?.price,
+        images: selProd?.images || [{ url: selProd?.image || "/images/aloo.png" }],
+        unit: selProd?.unit || "kg"
+      },
+      durationDays,
+      createdAt,
+      expiresAt
+    };
+
+    let adsList = [];
+    try {
+      adsList = JSON.parse(localStorage.getItem("farmer_video_ads") || "[]");
+    } catch (err) {}
+    adsList.unshift(newAd);
+    localStorage.setItem("farmer_video_ads", JSON.stringify(adsList));
+    toast.success(`Video Ad published! Will show on customer dashboard for ${durationDays} days. 📹`);
+    setShowAdminAdModal(false);
+    loadData(false);
+    notifySyncListeners();
+  };
+
+  const handleAdminDeleteAd = (adId) => {
+    if (!confirm("Delete this promotional video ad from the platform?")) return;
+    try {
+      let adsList = JSON.parse(localStorage.getItem("farmer_video_ads") || "[]");
+      adsList = adsList.filter((a) => a.id !== adId);
+      localStorage.setItem("farmer_video_ads", JSON.stringify(adsList));
+      toast.success("Video ad removed");
+      loadData(false);
+      notifySyncListeners();
+    } catch (e) {
+      toast.error("Failed to delete video ad");
     }
   };
 
@@ -598,6 +672,24 @@ export default function AdminDashboard() {
           >
             <FiUsers /> Users & Accounts ({users.length})
           </button>
+
+          <button
+            onClick={() => setActiveTab("videoAds")}
+            style={{
+              background: activeTab === "videoAds" ? "var(--primary)" : "transparent",
+              color: "#fff",
+              border: "none",
+              padding: "0.6rem 1.2rem",
+              borderRadius: "var(--radius-sm)",
+              fontWeight: "600",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px"
+            }}
+          >
+            <FiVideo /> Video Ads Control ({videoAds.length})
+          </button>
         </div>
       </div>
 
@@ -833,6 +925,7 @@ export default function AdminDashboard() {
                     <th style={{ padding: "1rem" }}>Date</th>
                     <th style={{ padding: "1rem" }}>Total Amount</th>
                     <th style={{ padding: "1rem" }}>Payment Mode</th>
+                    <th style={{ padding: "1rem" }}>Delivery Agent</th>
                     <th style={{ padding: "1rem" }}>Order Status Override</th>
                     <th style={{ padding: "1rem", textAlign: "right" }}>Master Action</th>
                   </tr>
@@ -866,6 +959,13 @@ export default function AdminDashboard() {
                           >
                             {o.isPaid ? "Paid ✅" : "COD Pending ⏳ (Click to mark Paid)"}
                           </button>
+                        </td>
+                        <td style={{ padding: "1rem", fontSize: "0.85rem" }}>
+                          <div style={{ fontWeight: "bold", color: "var(--text)" }}>🛵 {o.deliveryAgentName || "Anil Kumar"}</div>
+                          <div style={{ color: "var(--muted)", fontSize: "0.78rem" }}>{o.deliveryAgentEmail || "delivery@demo.com"}</div>
+                          <span className="badge badge-organic" style={{ marginTop: "4px", fontSize: "0.72rem" }}>
+                            {o.status === "Delivered" ? "Delivered ✅" : "Assigned 🛵"}
+                          </span>
                         </td>
                         <td style={{ padding: "1rem" }}>
                           <select
@@ -990,6 +1090,173 @@ export default function AdminDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* --- TAB 5: VIDEO ADS CONTROL --- */}
+      {activeTab === "videoAds" && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "1rem" }}>
+            <div>
+              <h2 style={{ fontSize: "1.5rem", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
+                <FiVideo color="var(--primary)" /> Promotional Video Ads Master Control
+              </h2>
+              <p style={{ color: "var(--muted)", margin: 0, fontSize: "0.9rem" }}>
+                Create, monitor, or remove farmer promotional video ads displayed on the customer home page.
+              </p>
+            </div>
+            <button
+              className="btn"
+              onClick={() => setShowAdminAdModal(true)}
+              style={{ background: "var(--primary)", color: "#fff", display: "flex", alignItems: "center", gap: "6px" }}
+            >
+              <FiPlus /> Create Platform Video Ad
+            </button>
+          </div>
+
+          {videoAds.length === 0 ? (
+            <div className="card text-center" style={{ padding: "3rem", borderStyle: "dashed" }}>
+              <h3>No video ads currently active</h3>
+              <p className="muted">Create an ad to display directly on the customer store front.</p>
+              <button className="btn btn-sm" onClick={() => setShowAdminAdModal(true)} style={{ marginTop: "1rem" }}>
+                + Create Video Ad
+              </button>
+            </div>
+          ) : (
+            <div className="table-responsive" style={{ background: "#fff", borderRadius: "var(--radius-md)", border: "1px solid var(--border)", overflow: "hidden" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc", borderBottom: "1px solid var(--border)", textAlign: "left" }}>
+                    <th style={{ padding: "1rem" }}>Ad Title & Farmer</th>
+                    <th style={{ padding: "1rem" }}>Promoting Product</th>
+                    <th style={{ padding: "1rem" }}>Active Duration</th>
+                    <th style={{ padding: "1rem" }}>Ad Status</th>
+                    <th style={{ padding: "1rem", textAlign: "right" }}>Master Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {videoAds.map((ad) => {
+                    const isExpired = new Date(ad.expiresAt) <= new Date();
+                    const daysRemaining = Math.max(0, Math.ceil((new Date(ad.expiresAt) - new Date()) / (1000 * 60 * 60 * 24)));
+                    return (
+                      <tr key={ad.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                        <td style={{ padding: "1rem" }}>
+                          <div style={{ fontWeight: "bold", color: "var(--text)" }}>📢 {ad.title}</div>
+                          <div style={{ fontSize: "0.8rem", color: "var(--muted)" }}>By: {ad.farmerName} ({ad.farmerEmail})</div>
+                        </td>
+                        <td style={{ padding: "1rem" }}>
+                          <span className="badge" style={{ background: "#f1f5f9", color: "#334155", fontWeight: "600" }}>
+                            {ad.product?.name || "Produce Item"}
+                          </span>
+                        </td>
+                        <td style={{ padding: "1rem", fontWeight: "600" }}>
+                          {ad.durationDays} Days ({daysRemaining} days left)
+                        </td>
+                        <td style={{ padding: "1rem" }}>
+                          <span className={`badge ${isExpired ? "badge-danger" : "badge-organic"}`}>
+                            {isExpired ? "Expired ❌" : "Active Live ✅"}
+                          </span>
+                        </td>
+                        <td style={{ padding: "1rem", textAlign: "right" }}>
+                          <button
+                            className="btn btn-sm"
+                            onClick={() => handleAdminDeleteAd(ad.id)}
+                            style={{ background: "#ef4444", color: "#fff", border: "none", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                          >
+                            <FiTrash2 /> Remove Ad
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* --- CREATE ADMIN VIDEO AD MODAL --- */}
+      {showAdminAdModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+          <div className="animate-scale-up" style={{ background: "#fff", width: "100%", maxWidth: "520px", borderRadius: "var(--radius-md)", padding: "2rem", boxShadow: "0 20px 40px rgba(0,0,0,0.2)", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                📹 Create Promotional Video Ad
+              </h3>
+              <button onClick={() => setShowAdminAdModal(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem" }}>
+                <FiX />
+              </button>
+            </div>
+
+            <form onSubmit={handleAdminCreateAd} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+              <div>
+                <label style={{ display: "block", fontWeight: "600", fontSize: "0.85rem", marginBottom: "4px" }}>Ad Title / Caption *</label>
+                <input
+                  type="text"
+                  className="input"
+                  style={{ width: "100%" }}
+                  value={adminAdForm.title}
+                  onChange={(e) => setAdminAdForm({ ...adminAdForm, title: e.target.value })}
+                  placeholder="e.g. Special Farm Harvest Deal! 🚜"
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontWeight: "600", fontSize: "0.85rem", marginBottom: "4px" }}>Select Product to Promote *</label>
+                <select
+                  className="input"
+                  style={{ width: "100%" }}
+                  value={adminAdForm.productId}
+                  onChange={(e) => setAdminAdForm({ ...adminAdForm, productId: e.target.value })}
+                >
+                  {products.map((p) => (
+                    <option key={p._id || p.id} value={p._id || p.id}>
+                      {p.name} — ₹{p.discountPrice || p.price} / {p.unit || "kg"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontWeight: "600", fontSize: "0.85rem", marginBottom: "4px" }}>Video URL *</label>
+                <input
+                  type="text"
+                  className="input"
+                  style={{ width: "100%" }}
+                  value={adminAdForm.videoUrl}
+                  onChange={(e) => setAdminAdForm({ ...adminAdForm, videoUrl: e.target.value })}
+                  placeholder="https://assets.mixkit.co/videos/preview/mixkit-farmer-hands-holding-fresh-tomatoes-42984-large.mp4"
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontWeight: "600", fontSize: "0.85rem", marginBottom: "4px" }}>Select Active Duration (Number of Days) *</label>
+                <select
+                  className="input"
+                  style={{ width: "100%" }}
+                  value={adminAdForm.durationDays}
+                  onChange={(e) => setAdminAdForm({ ...adminAdForm, durationDays: e.target.value })}
+                >
+                  <option value="1">1 Day</option>
+                  <option value="3">3 Days</option>
+                  <option value="7">7 Days (1 Week)</option>
+                  <option value="15">15 Days</option>
+                  <option value="30">30 Days (1 Month)</option>
+                </select>
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", marginTop: "1rem" }}>
+                <button type="submit" className="btn" style={{ background: "var(--primary)", color: "#fff", flex: 1 }}>
+                  Publish Video Ad 🚀
+                </button>
+                <button type="button" className="btn btn-outline" onClick={() => setShowAdminAdModal(false)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
