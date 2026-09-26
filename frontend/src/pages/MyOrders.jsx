@@ -59,7 +59,11 @@ export default function MyOrders() {
 
       const combined = Array.from(orderMap.values())
         .filter((o) => o._id !== "ORD-1790402239214")
-        .sort((a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now()));
+        .sort((a, b) => {
+          const timeA = new Date(a.createdAt || 0).getTime();
+          const timeB = new Date(b.createdAt || 0).getTime();
+          return timeB - timeA;
+        });
 
       setOrders(combined);
     } catch (err) {
@@ -81,12 +85,29 @@ export default function MyOrders() {
     };
   }, [user]);
 
+  const formatOrderDateTime = (dateStr) => {
+    try {
+      const d = new Date(dateStr || Date.now());
+      if (isNaN(d.getTime())) return "Recently Placed";
+      return d.toLocaleString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+      });
+    } catch (e) {
+      return "Recently Placed";
+    }
+  };
+
   if (loading) return <Loader />;
 
   return (
     <div className="container animate-slide-up" style={{ padding: '4rem 1.5rem', minHeight: '70vh' }}>
       <h1 className="section-title" style={{ textAlign: 'left', marginBottom: '2rem' }}>
-        <small>Track your</small>My Orders
+        <small>Track your</small>My Orders ({orders.length})
       </h1>
 
       {orders.length === 0 ? (
@@ -110,8 +131,8 @@ export default function MyOrders() {
                     <strong style={{ display: 'block', fontSize: '1.2rem', color: 'var(--text)', marginBottom: '0.2rem', fontFamily: 'var(--font-heading)' }}>
                       Order #{o._id.substring(o._id.length - 6).toUpperCase()}
                     </strong>
-                    <span className="muted" style={{ fontSize: '0.9rem', display: 'block', marginBottom: '0.4rem' }}>
-                      {new Date(o.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    <span className="muted" style={{ fontSize: '0.9rem', display: 'block', marginBottom: '0.4rem', color: 'var(--primary)', fontWeight: '500' }}>
+                      📅 {formatOrderDateTime(o.createdAt)}
                     </span>
                     <div style={{ fontSize: '0.95rem', color: 'var(--text)' }}>
                       {o.items?.map(i => `${i.quantity}x ${i.name}`).join(', ').substring(0, 50)}
