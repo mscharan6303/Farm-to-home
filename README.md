@@ -139,4 +139,4 @@ Open `http://localhost:5173` in your browser to experience the platform!
 
 ## 📜 License & Acknowledgments
 
-Developed as part of the **Avishkarna Andhra Internship Mini Project**. Designed to support sustainable Indian agriculture, empower local farmers, and provide fresh produce to every household.
+Developed by **M. S. Charan**. Designed to support sustainable Indian agriculture, empower local farmers, and provide fresh produce to every household.

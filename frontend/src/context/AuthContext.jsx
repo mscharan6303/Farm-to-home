@@ -8,16 +8,32 @@ export const useAuth = () => useContext(AuthContext);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("user");
-    return stored ? JSON.parse(stored) : null;
+    if (!stored) return null;
+    try {
+      const parsed = JSON.parse(stored);
+      if (parsed && parsed.email) {
+        const isPremSaved = localStorage.getItem(`premium_sub_${parsed.email.toLowerCase()}`) === "true";
+        if (isPremSaved) parsed.isPremium = true;
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
   });
   const [loading, setLoading] = useState(false);
 
   const persist = (data) => {
+    const emailKey = (data.email || "").toLowerCase();
+    const isPremSaved = emailKey ? localStorage.getItem(`premium_sub_${emailKey}`) === "true" : false;
+
     const userWithDefaults = {
       phone: data.phone || "+91 9876543210",
       address: data.address || "123 Green Farm Avenue, Jubilee Hills, Hyderabad, 500033",
+      isPremium: data.isPremium || isPremSaved,
       ...data,
     };
+    if (isPremSaved) userWithDefaults.isPremium = true;
+
     localStorage.setItem("token", userWithDefaults.token || "mock_token");
     localStorage.setItem("user", JSON.stringify(userWithDefaults));
     setUser(userWithDefaults);
@@ -25,10 +41,17 @@ export function AuthProvider({ children }) {
 
   const updateUser = (data) => {
     const updated = { ...user, ...data };
+    if (user && user.email) {
+      const emailKey = user.email.toLowerCase();
+      if (data.isPremium === true) {
+        localStorage.setItem(`premium_sub_${emailKey}`, "true");
+      } else if (data.isPremium === false) {
+        localStorage.removeItem(`premium_sub_${emailKey}`);
+      }
+    }
     localStorage.setItem("user", JSON.stringify(updated));
     setUser(updated);
   };
-
 
   const upgradePremium = async () => {
     setLoading(true);

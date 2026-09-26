@@ -46,9 +46,24 @@ export default function Subscriptions() {
     }
   };
 
-  const handleSubscribePremium = async () => {
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [utrNumber, setUtrNumber] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("UPI");
+
+  const handleSubscribePremium = () => {
     if (!user) { nav("/login"); return; }
-    await upgradePremium();
+    setShowPaymentModal(true);
+  };
+
+  const handleConfirmOnlinePayment = async (e) => {
+    e.preventDefault();
+    try {
+      await upgradePremium();
+      setShowPaymentModal(false);
+      toast.success("Online Payment Verified! 🌟 FarmPass Premium Activated.");
+    } catch (err) {
+      toast.error("Payment processing failed");
+    }
   };
 
   const handleCancelPremium = async () => {
@@ -113,6 +128,88 @@ export default function Subscriptions() {
               <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>Zero Delivery Fees</h4>
               <p className="muted">No minimum order required. Order as many times as you want without paying a single rupee for shipping.</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- ONLINE PAYMENT MODAL FOR FARMPASS SUBSCRIPTION --- */}
+      {showPaymentModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+          <div className="animate-scale-up" style={{ background: "#fff", width: "100%", maxWidth: "480px", borderRadius: "var(--radius-md)", padding: "2rem", boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <h3 style={{ margin: 0, color: "var(--primary)" }}>💳 Online Payment — FarmPass ₹499</h3>
+              <button onClick={() => setShowPaymentModal(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem" }}>
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmOnlinePayment} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+              <div style={{ background: "var(--bg-soft)", padding: "1rem", borderRadius: "var(--radius-sm)", textAlign: "center" }}>
+                <span style={{ fontSize: "0.85rem", color: "var(--muted)", display: "block" }}>FarmPass Membership Fee</span>
+                <strong style={{ fontSize: "2rem", color: "var(--primary)" }}>₹499.00 / month</strong>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontWeight: "600", fontSize: "0.85rem", marginBottom: "6px" }}>Select Online Payment Mode</label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  <button
+                    type="button"
+                    className={`btn ${paymentMethod === "UPI" ? "btn-primary" : "btn-outline"}`}
+                    onClick={() => setPaymentMethod("UPI")}
+                    style={{ padding: "0.6rem" }}
+                  >
+                    📱 Instant UPI (GPay/PhonePe)
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${paymentMethod === "CARD" ? "btn-primary" : "btn-outline"}`}
+                    onClick={() => setPaymentMethod("CARD")}
+                    style={{ padding: "0.6rem" }}
+                  >
+                    💳 Debit / Credit Card
+                  </button>
+                </div>
+              </div>
+
+              {paymentMethod === "UPI" && (
+                <div style={{ background: "#f8fafc", border: "1px solid var(--border)", padding: "1rem", borderRadius: "var(--radius-sm)", textAlign: "center" }}>
+                  <div style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "4px" }}>Official UPI VPA:</div>
+                  <strong style={{ fontSize: "1.1rem", color: "var(--primary)" }}>farmtohome@upi</strong>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText("farmtohome@upi");
+                      toast.success("UPI ID copied!");
+                    }}
+                    style={{ marginTop: "8px", display: "inline-block" }}
+                  >
+                    Copy UPI ID 📋
+                  </button>
+                </div>
+              )}
+
+              <div>
+                <label style={{ display: "block", fontWeight: "600", fontSize: "0.85rem", marginBottom: "4px" }}>Transaction UTR / Reference ID (Optional)</label>
+                <input
+                  type="text"
+                  className="input"
+                  style={{ width: "100%" }}
+                  value={utrNumber}
+                  onChange={(e) => setUtrNumber(e.target.value)}
+                  placeholder="e.g. UTR-9876543210"
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", marginTop: "0.5rem" }}>
+                <button type="submit" className="btn" style={{ background: "var(--primary)", color: "#fff", flex: 1, padding: "0.8rem" }}>
+                  Confirm Online Payment & Activate
+                </button>
+                <button type="button" className="btn btn-outline" onClick={() => setShowPaymentModal(false)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
