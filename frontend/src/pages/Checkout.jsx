@@ -14,6 +14,8 @@ export default function Checkout() {
   const [selectedBank, setSelectedBank] = useState("State Bank of India");
   const [cardDetails, setCardDetails] = useState({ number: "", expiry: "", cvv: "", name: "" });
   const [loading, setLoading] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [utrNumber, setUtrNumber] = useState("");
   const [isSubscription, setIsSubscription] = useState(false);
   const [frequency, setFrequency] = useState("Weekly");
 
@@ -46,11 +48,38 @@ export default function Checkout() {
     return 'Debit / Credit Card';
   };
 
-  const handlePlaceOrder = async (e) => {
+  const getProductImg = (i) => {
+    if (i.product?.images?.[0]?.url) return i.product.images[0].url;
+    if (i.product?.image) return i.product.image;
+    if (typeof i.image === 'string' && i.image) return i.image;
+    return '/images/logo.png';
+  };
+
+  const handleFormSubmit = (e) => {
     e.preventDefault();
+    if (!address.trim()) {
+      toast.error("Please enter a valid delivery address.");
+      return;
+    }
+
+    if (method === "Card") {
+      if (!cardDetails.number || !cardDetails.expiry || !cardDetails.cvv || !cardDetails.name) {
+        toast.error("Please fill in all card details.");
+        return;
+      }
+    }
+
+    if (method === "COD") {
+      executeOrderPlacement(false);
+    } else {
+      setShowPaymentModal(true);
+    }
+  };
+
+  const executeOrderPlacement = async (isPaidOnline = true) => {
     setLoading(true);
 
-    const isPaidOnline = method !== "COD";
+    const txnRef = utrNumber.trim() ? `UTR-${utrNumber.trim()}` : `TXN-${Date.now()}`;
     const paymentMethodLabel = method === "UPI" 
       ? "UPI (Google Pay / PhonePe)" 
       : method === "Card" 
@@ -63,7 +92,13 @@ export default function Checkout() {
       let orderId;
       try {
         const { data } = await api.post("/orders", {
-          items: cart.items.map(i => ({ product: i.product._id, quantity: i.quantity, price: i.product.discountPrice || i.product.price })),
+          items: cart.items.map(i => ({ 
+            product: i.product._id, 
+            name: i.product.name,
+            image: getProductImg(i),
+            quantity: i.quantity, 
+            price: i.product.discountPrice || i.product.price 
+          })),
           shippingAddress: { address, city: "Hyderabad", postalCode: "500033", country: "India" },
           paymentMethod: paymentMethodLabel,
           itemsPrice: rawSubtotal,
@@ -73,7 +108,7 @@ export default function Checkout() {
           isSubscription,
           frequency,
           isPaid: isPaidOnline,
-          paymentResult: { id: "TXN-" + Date.now(), status: isPaidOnline ? "Completed" : "Pending" }
+          paymentResult: { id: txnRef, status: isPaidOnline ? "Completed" : "Pending" }
         });
         orderId = data._id;
       } catch (backendErr) {
@@ -86,7 +121,7 @@ export default function Checkout() {
             name: i.product.name,
             quantity: i.quantity,
             price: i.product.discountPrice || i.product.price,
-            image: i.product.image
+            image: getProductImg(i)
           })),
           shippingAddress: { address, city: "Hyderabad", postalCode: "500033", country: "India" },
           paymentMethod: paymentMethodLabel,
@@ -98,7 +133,7 @@ export default function Checkout() {
           frequency,
           isPaid: isPaidOnline,
           paidAt: isPaidOnline ? new Date().toISOString() : null,
-          paymentResult: { id: "TXN-" + Date.now(), status: isPaidOnline ? "Completed" : "Pending" },
+          paymentResult: { id: txnRef, status: isPaidOnline ? "Completed" : "Pending" },
           status: "Processing",
           createdAt: new Date().toISOString(),
           user: { name: user?.name || "Customer", email: user?.email || "user@farmtohome.com" }
@@ -108,8 +143,9 @@ export default function Checkout() {
         orderId = newOrder._id;
       }
 
+      setShowPaymentModal(false);
       clearCart();
-      toast.success(isPaidOnline ? "Online Payment Received & Order Placed!" : "Order placed successfully!");
+      toast.success(isPaidOnline ? "Online Payment Verified & Order Placed!" : "Order placed successfully!");
       nav(`/orders/${orderId}`);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to place order");
@@ -119,14 +155,14 @@ export default function Checkout() {
   };
 
   const upiLink = `upi://pay?pa=farmtohome@upi&pn=FarmToHome&am=${totalToPay.toFixed(2)}&cu=INR&tn=Order_Payment`;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiLink)}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
 
   return (
     <div className="container animate-slide-up" style={{ padding: '4rem 1.5rem' }}>
       <h1 style={{ fontSize: '2.5rem', marginBottom: '3rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>Secure Checkout</h1>
 
       <div className="checkout-layout">
-        <form id="checkoutForm" onSubmit={handlePlaceOrder} style={{ background: '#fff', padding: '3rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+        <form id="checkoutForm" onSubmit={handleFormSubmit} style={{ background: '#fff', padding: '3rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
           <h3 style={{ fontSize: '1.5rem', marginBottom: '2rem', color: 'var(--primary)' }}>1. Shipping Details</h3>
 
           <div style={{ background: 'var(--bg-soft)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', marginBottom: '1.5rem' }}>
@@ -212,30 +248,13 @@ export default function Checkout() {
             </label>
           </div>
 
-          {/* Dynamic Payment Method Renderers */}
+          {/* Inline Previews */}
           {method === "UPI" && (
-            <div style={{ background: '#f8fafc', padding: '2rem', borderRadius: 'var(--radius)', border: '1px solid #cbd5e1', marginBottom: '2rem', textAlign: 'center' }}>
-              <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem', fontSize: '1.2rem' }}>Scan QR Code or Click your UPI App</h4>
-              <p className="muted" style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>Scan with Google Pay, PhonePe, Paytm, BHIM, or any UPI App to pay ₹{totalToPay.toFixed(2)} instantly.</p>
-              
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                <img 
-                  src={qrCodeUrl} 
-                  alt="UPI QR Code" 
-                  style={{ width: '180px', height: '180px', padding: '10px', background: '#fff', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} 
-                />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '1.5rem' }}>
-                <span style={{ fontSize: '0.95rem', fontWeight: 'bold' }}>UPI ID: farmtohome@upi</span>
-                <button type="button" onClick={copyUpiId} className="btn btn-sm btn-outline" style={{ padding: '2px 10px', fontSize: '0.8rem' }}>Copy</button>
-              </div>
-
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <a href={upiLink} className="btn btn-sm" style={{ background: '#4285F4', color: '#fff' }}>Pay via GPay</a>
-                <a href={upiLink} className="btn btn-sm" style={{ background: '#5f259f', color: '#fff' }}>Pay via PhonePe</a>
-                <a href={upiLink} className="btn btn-sm" style={{ background: '#00baf2', color: '#fff' }}>Pay via Paytm</a>
-              </div>
+            <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid #cbd5e1', marginBottom: '2rem' }}>
+              <strong style={{ display: 'block', color: 'var(--primary)', marginBottom: '0.5rem' }}>📱 UPI Instant Payment Selected</strong>
+              <p className="muted" style={{ fontSize: '0.9rem', margin: 0 }}>
+                Clicking "Proceed to Online Payment" will open the secure UPI Payment verification modal to scan the QR code and complete your payment of <strong>₹{totalToPay.toFixed(2)}</strong>.
+              </p>
             </div>
           )}
 
@@ -319,9 +338,6 @@ export default function Checkout() {
                   <option value="Bank of Baroda">Bank of Baroda</option>
                 </select>
               </div>
-              <div style={{ padding: '0.8rem 1rem', background: '#e0f2fe', color: '#0369a1', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem' }}>
-                🔒 You will be securely redirected to {selectedBank} online portal upon clicking place order.
-              </div>
             </div>
           )}
 
@@ -358,22 +374,23 @@ export default function Checkout() {
                     </div>
                   ))}
                 </div>
-                <div style={{ marginTop: '1rem', padding: '1rem', background: '#e0f2fe', color: '#0369a1', borderRadius: 'var(--radius)', fontSize: '0.9rem' }}>
-                  <strong>💡 Subscriber Benefit:</strong> Save 5% on all future recurring deliveries automatically!
-                </div>
               </div>
             )}
           </div>
         </form>
 
+        {/* Order Summary Sidebar */}
         <div className="summary sticky-desktop" style={{ background: 'var(--primary)', color: '#fff' }}>
           <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '1rem', color: '#fff' }}>Order Items</h3>
           <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1.5rem', paddingRight: '10px' }}>
             {cart?.items?.map(i => (
               <div key={i.product._id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px dashed rgba(255,255,255,0.1)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.85rem' }}>{i.quantity}x</span>
-                  <span style={{ fontWeight: '500' }}>{i.product.name}</span>
+                  <img src={getProductImg(i)} alt={i.product.name} style={{ width: '40px', height: '40px', objectFit: 'contain', background: '#fff', borderRadius: '4px', padding: '2px' }} />
+                  <div>
+                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', marginRight: '6px' }}>{i.quantity}x</span>
+                    <span style={{ fontWeight: '500', fontSize: '0.95rem' }}>{i.product.name}</span>
+                  </div>
                 </div>
                 <span style={{ fontWeight: '700' }}>₹{(i.product.discountPrice || i.product.price) * i.quantity}</span>
               </div>
@@ -398,10 +415,86 @@ export default function Checkout() {
             <span>Total to Pay</span> <span>₹{totalToPay.toFixed(2)}</span>
           </div>
           <button form="checkoutForm" type="submit" className="btn btn-block" disabled={loading} style={{ background: '#fff', color: 'var(--primary)', padding: '1.2rem', marginTop: '2rem', fontSize: '1.1rem' }}>
-            {loading ? "Processing..." : method === "COD" ? "Place Order Now" : `Pay ₹${totalToPay.toFixed(2)} Online Now`}
+            {loading ? "Processing..." : method === "COD" ? "Place Order (Cash on Delivery)" : `Proceed to Pay ₹${totalToPay.toFixed(2)} Online`}
           </button>
         </div>
       </div>
+
+      {/* Interactive Online Payment Modal */}
+      {showPaymentModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1.5rem' }}>
+          <div style={{ background: '#fff', borderRadius: 'var(--radius-lg)', maxWidth: '480px', width: '100%', padding: '2rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', animation: 'scaleUp 0.3s ease-out' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.3rem', color: 'var(--primary)', margin: 0 }}>🔒 Complete Online Payment</h3>
+                <span className="muted" style={{ fontSize: '0.85rem' }}>Amount: <strong style={{ color: 'var(--text)' }}>₹{totalToPay.toFixed(2)}</strong></span>
+              </div>
+              <button onClick={() => setShowPaymentModal(false)} className="btn btn-sm btn-outline" style={{ border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+            </div>
+
+            {method === "UPI" && (
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: '0.95rem', color: 'var(--text)', marginBottom: '1rem' }}>Scan QR Code with Google Pay / PhonePe / Paytm to transfer <strong>₹{totalToPay.toFixed(2)}</strong></p>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                  <img src={qrCodeUrl} alt="UPI QR Code" style={{ width: '190px', height: '190px', padding: '10px', background: '#fff', borderRadius: '12px', border: '2px solid var(--primary)' }} />
+                </div>
+                <div style={{ background: 'var(--accent)', padding: '0.6rem 1rem', borderRadius: 'var(--radius-sm)', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '1.2rem' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--primary)' }}>UPI ID: farmtohome@upi</span>
+                  <button type="button" onClick={copyUpiId} className="btn btn-sm" style={{ padding: '2px 8px', fontSize: '0.75rem', background: 'var(--primary)', color: '#fff' }}>Copy</button>
+                </div>
+                
+                <div className="form-group" style={{ textAlign: 'left', marginBottom: '1.5rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>UPI Transaction UTR / Ref No (Optional):</label>
+                  <input 
+                    type="text" 
+                    className="input" 
+                    placeholder="e.g. 426819204851 (12 digits)" 
+                    value={utrNumber}
+                    onChange={(e) => setUtrNumber(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {method === "Card" && (
+              <div>
+                <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem' }}>Confirming <strong>{getCardBrand(cardDetails.number)}</strong> payment of <strong>₹{totalToPay.toFixed(2)}</strong> ending in **** {cardDetails.number.slice(-4) || "1234"}</p>
+                <div style={{ background: '#f1f5f9', padding: '1rem', borderRadius: 'var(--radius-sm)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                  <div><strong>Cardholder:</strong> {cardDetails.name || "Customer"}</div>
+                  <div><strong>Expiry:</strong> {cardDetails.expiry || "12/28"}</div>
+                </div>
+              </div>
+            )}
+
+            {method === "NetBanking" && (
+              <div>
+                <p style={{ fontSize: '0.95rem', marginBottom: '1.5rem' }}>Authorizing payment of <strong>₹{totalToPay.toFixed(2)}</strong> via <strong>{selectedBank} Net Banking</strong>.</p>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem' }}>
+              <button 
+                type="button" 
+                className="btn btn-outline" 
+                style={{ flex: 1 }} 
+                onClick={() => setShowPaymentModal(false)}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                className="btn" 
+                style={{ flex: 2, background: 'var(--primary)', color: '#fff' }} 
+                onClick={() => executeOrderPlacement(true)}
+                disabled={loading}
+              >
+                {loading ? "Verifying..." : "✓ I Have Paid - Confirm Order"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

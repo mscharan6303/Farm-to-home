@@ -29,6 +29,29 @@ export default function OrderDetails() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  const getItemImage = (item) => {
+    if (typeof item.image === 'string' && item.image.length > 3 && !item.image.includes('placehold.co')) return item.image;
+    if (item.images && item.images[0]?.url) return item.images[0].url;
+    if (item.product?.images && item.product.images[0]?.url) return item.product.images[0].url;
+    if (item.product?.image) return item.product.image;
+    
+    const lname = (item.name || '').toLowerCase();
+    if (lname.includes('onion') || lname.includes('pyaaz')) return '/images/red_onion.png';
+    if (lname.includes('aloo') || lname.includes('potato')) return '/images/aloo.png';
+    if (lname.includes('tamatar') || lname.includes('tomato')) return '/images/tomato.png';
+    if (lname.includes('gobi') || lname.includes('cauliflower')) return '/images/cauliflower.png';
+    if (lname.includes('bhindi') || lname.includes('okra')) return '/images/okra.png';
+    if (lname.includes('baingan') || lname.includes('eggplant')) return '/images/eggplant.png';
+    if (lname.includes('gajar') || lname.includes('carrot')) return '/images/carrot.png';
+    if (lname.includes('capsicum') || lname.includes('mirch')) return '/images/capsicum.png';
+    if (lname.includes('spinach') || lname.includes('palak')) return '/images/spinach.png';
+    if (lname.includes('mango') || lname.includes('aam')) return '/images/mango.png';
+    if (lname.includes('ghee')) return '/images/ghee.png';
+    if (lname.includes('pomegranate') || lname.includes('anaar')) return '/images/pomegranate.png';
+    
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'Product')}&background=1b4332&color=ffffff&size=128`;
+  };
+
   if (loading) return <Loader />;
   if (!order) return <div className="container text-center mt-4"><h2>Order not found</h2></div>;
 
@@ -99,10 +122,10 @@ export default function OrderDetails() {
               {order.items?.map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', paddingBottom: '1.5rem', borderBottom: idx !== order.items.length - 1 ? '1px solid var(--border)' : 'none' }}>
                   <img 
-                    src={item.image || 'https://placehold.co/100'} 
+                    src={getItemImage(item)} 
                     alt={item.name} 
                     style={{ width: '80px', height: '80px', objectFit: 'contain', background: 'var(--bg-soft)', borderRadius: 'var(--radius-sm)', padding: '0.5rem' }} 
-                    onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/600x400/f4f7f5/1b4332?text=${encodeURIComponent(item.name || 'Product')}`; }}
+                    onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'Product')}&background=1b4332&color=ffffff&size=128`; }}
                   />
                   <div style={{ flex: 1 }}>
                     <Link to={`/products/${item.product}`} style={{ fontWeight: '600', fontSize: '1.1rem', color: 'var(--text)' }}>{item.name || "Product Unavailable"}</Link>
