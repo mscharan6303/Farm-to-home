@@ -90,7 +90,9 @@ export default function OrderDetails() {
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', marginTop: '2rem' }}>
               {['Pending', 'Confirmed', 'Shipped', 'Out for Delivery', 'Delivered'].map((step, index, arr) => {
-                const isActive = arr.indexOf(order.status) >= index;
+                const statusMap = { 'Processing': 'Pending', 'Pending': 'Pending', 'Confirmed': 'Confirmed', 'Shipped': 'Shipped', 'Out for Delivery': 'Out for Delivery', 'Delivered': 'Delivered' };
+                const currentStep = statusMap[order.status] || 'Pending';
+                const isActive = arr.indexOf(currentStep) >= index;
                 return (
                   <div key={step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, flex: 1 }}>
                     <div style={{ 

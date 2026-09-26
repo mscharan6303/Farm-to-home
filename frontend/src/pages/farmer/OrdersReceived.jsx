@@ -19,7 +19,6 @@ export default function OrdersReceived() {
       const res = await api.get("/orders/farmer/received");
       let data = Array.isArray(res.data) ? res.data : [];
       const local = getLocalFarmerOrders();
-      
       const seen = new Set(data.map(o => o._id));
       local.forEach(l => {
         if (!seen.has(l._id)) {
@@ -27,10 +26,12 @@ export default function OrdersReceived() {
           data.push(l);
         }
       });
+      data.sort((a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now()));
       setOrders(data);
     } catch (err) {
       console.warn("Failed to fetch farmer orders from API, fallback to local storage:", err);
-      setOrders(getLocalFarmerOrders());
+      const local = getLocalFarmerOrders();
+      setOrders(local.sort((a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now())));
     } finally {
       setLoading(false);
     }

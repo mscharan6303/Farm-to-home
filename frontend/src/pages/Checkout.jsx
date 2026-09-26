@@ -67,6 +67,23 @@ export default function Checkout() {
 
     try {
       let orderId;
+      const saveOrderToStorage = (orderObj) => {
+        if (!orderObj || !orderObj._id) return;
+        const keys = [
+          `local_orders_${user?._id || user?.email || 'guest'}`,
+          "all_local_orders",
+          "local_orders_guest"
+        ];
+        keys.forEach(k => {
+          try {
+            const list = JSON.parse(localStorage.getItem(k) || "[]");
+            const filtered = list.filter(o => o._id !== orderObj._id);
+            filtered.unshift(orderObj);
+            localStorage.setItem(k, JSON.stringify(filtered));
+          } catch (e) {}
+        });
+      };
+
       try {
         const { data } = await api.post("/orders", {
           items: cart.items.map(i => ({ 
@@ -88,14 +105,9 @@ export default function Checkout() {
           paymentResult: { id: txnRef, status: isPaidOnline ? "Completed" : "Pending" }
         });
         orderId = data._id;
-        try {
-          const allOrders = JSON.parse(localStorage.getItem("all_local_orders") || "[]");
-          allOrders.unshift(data);
-          localStorage.setItem("all_local_orders", JSON.stringify(allOrders));
-        } catch (e) {}
+        saveOrderToStorage(data);
       } catch (backendErr) {
         console.warn("Backend order placement failed, creating local order record:", backendErr);
-        const localOrders = JSON.parse(localStorage.getItem(`local_orders_${user?._id || user?.email || 'guest'}`) || "[]");
         const newOrder = {
           _id: "ORD-" + Date.now(),
           items: cart.items.map(i => ({
@@ -116,19 +128,11 @@ export default function Checkout() {
           isPaid: isPaidOnline,
           paidAt: isPaidOnline ? new Date().toISOString() : null,
           paymentResult: { id: txnRef, status: isPaidOnline ? "Completed" : "Pending" },
-          status: "Processing",
+          status: "Pending",
           createdAt: new Date().toISOString(),
           user: { name: user?.name || "Customer", email: user?.email || "user@farmtohome.com" }
         };
-        localOrders.unshift(newOrder);
-        localStorage.setItem(`local_orders_${user?._id || user?.email || 'guest'}`, JSON.stringify(localOrders));
-        
-        try {
-          const allOrders = JSON.parse(localStorage.getItem("all_local_orders") || "[]");
-          allOrders.unshift(newOrder);
-          localStorage.setItem("all_local_orders", JSON.stringify(allOrders));
-        } catch (e) {}
-
+        saveOrderToStorage(newOrder);
         orderId = newOrder._id;
       }
 
