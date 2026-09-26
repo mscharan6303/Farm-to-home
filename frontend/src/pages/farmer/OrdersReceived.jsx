@@ -43,39 +43,56 @@ export default function OrdersReceived() {
   );
 
   const updateStatus = async (id, newStatus, userId) => {
-    try {
-      await api.put(`/orders/status/${id}`, { status: newStatus });
-    } catch (err) {
-      console.warn("API status update failed, updating local storage:", err);
-    }
+    // 1. Optimistically update local component state immediately
+    setOrders((prev) =>
+      prev.map((o) => (o._id === id ? { ...o, status: newStatus } : o))
+    );
 
-    // Update in all_local_orders
+    // 2. Persist in status overrides map
+    try {
+      const overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+      overrides[id] = newStatus;
+      localStorage.setItem("farmer_order_status_overrides", JSON.stringify(overrides));
+    } catch (e) {}
+
+    // 3. Update in all_local_orders
     try {
       let allLocal = JSON.parse(localStorage.getItem("all_local_orders") || "[]");
-      allLocal = allLocal.map(o => o._id === id ? { ...o, status: newStatus } : o);
+      allLocal = allLocal.map((o) => (o._id === id ? { ...o, status: newStatus } : o));
       localStorage.setItem("all_local_orders", JSON.stringify(allLocal));
     } catch (e) {}
 
-    // Update in customer specific local storage keys
-    Object.keys(localStorage).forEach(key => {
+    // 4. Update in customer specific local storage keys
+    Object.keys(localStorage).forEach((key) => {
       if (key.startsWith("local_orders_")) {
         try {
           let userOrders = JSON.parse(localStorage.getItem(key) || "[]");
           if (Array.isArray(userOrders)) {
-            let updated = userOrders.map(o => o._id === id ? { ...o, status: newStatus } : o);
+            let updated = userOrders.map((o) => (o._id === id ? { ...o, status: newStatus } : o));
             localStorage.setItem(key, JSON.stringify(updated));
           }
         } catch (e) {}
       }
     });
 
-    toast.success(`Order status updated to "${newStatus}"`);
+    // 5. Send API call to backend
+    try {
+      await api.put(`/orders/status/${id}`, { status: newStatus });
+    } catch (err) {
+      console.warn("API status update failed, fallback to local persistence:", err);
+    }
+
+    if (newStatus === "Delivered") {
+      toast.success(`Order #${id.slice(-6).toUpperCase()} marked as Delivered (moved to Delivered Orders tab)`);
+    } else {
+      toast.success(`Order #${id.slice(-6).toUpperCase()} status updated to "${newStatus}"`);
+    }
+
     if (socket) {
       try {
         socket.emit("order:status_update", { userId, orderId: id, status: newStatus });
       } catch (e) {}
     }
-    load();
   };
 
   return (

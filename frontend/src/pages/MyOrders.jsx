@@ -11,19 +11,27 @@ export default function MyOrders() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let overrides = {};
+    try {
+      overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+    } catch (e) {}
+
+    const applyOverrides = (list) =>
+      list.map((o) => (overrides[o._id] ? { ...o, status: overrides[o._id] } : o));
+
     api.get("/orders/myorders")
       .then(r => {
         if (Array.isArray(r.data)) {
           const localOrders = JSON.parse(localStorage.getItem(`local_orders_${user?._id || user?.email || 'guest'}`) || "[]");
           const existingIds = new Set(r.data.map(o => o._id));
           const combined = [...r.data, ...localOrders.filter(l => !existingIds.has(l._id))];
-          setOrders(combined.filter(o => o._id !== "ORD-1790402239214"));
+          setOrders(applyOverrides(combined.filter(o => o._id !== "ORD-1790402239214")));
         }
       })
       .catch(err => {
         console.warn("Backend myorders failed, loading local orders:", err);
         const localOrders = JSON.parse(localStorage.getItem(`local_orders_${user?._id || user?.email || 'guest'}`) || "[]");
-        setOrders(localOrders.filter(o => o._id !== "ORD-1790402239214"));
+        setOrders(applyOverrides(localOrders.filter(o => o._id !== "ORD-1790402239214")));
       })
       .finally(() => setLoading(false));
   }, [user]);

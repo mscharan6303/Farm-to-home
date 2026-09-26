@@ -11,11 +11,18 @@ export default function OrderDetails() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let overrides = {};
+    try {
+      overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+    } catch (e) {}
+
+    const applyOverride = (o) => (o && overrides[o._id] ? { ...o, status: overrides[o._id] } : o);
+
     api.get(`/orders/${id}`)
-      .then(r => setOrder(r.data))
+      .then(r => setOrder(applyOverride(r.data)))
       .catch((err) => {
         console.warn("Backend order details fetch failed, searching local orders:", err);
-        const allKeys = Object.keys(localStorage).filter(k => k.startsWith("local_orders_"));
+        const allKeys = Object.keys(localStorage).filter(k => k.startsWith("local_orders_") || k === "all_local_orders");
         let found = null;
         for (const k of allKeys) {
           try {
@@ -24,7 +31,11 @@ export default function OrderDetails() {
             if (found) break;
           } catch(e) {}
         }
-        if (found) setOrder(found);
+        if (!found) {
+          const { mockOrders } = require("../services/mockData");
+          found = mockOrders?.find(o => o._id === id);
+        }
+        if (found) setOrder(applyOverride(found));
       })
       .finally(() => setLoading(false));
   }, [id]);

@@ -61,13 +61,21 @@ function handleMockProducts(url) {
 export function getLocalFarmerOrders() {
   const allOrders = [];
   const seenIds = new Set();
+  let overrides = {};
+  try {
+    overrides = JSON.parse(localStorage.getItem("farmer_order_status_overrides") || "{}");
+  } catch (e) {}
 
   const addOrders = (arr) => {
     if (!Array.isArray(arr)) return;
     arr.forEach((o) => {
       if (o && o._id && !seenIds.has(o._id)) {
         seenIds.add(o._id);
-        allOrders.push(o);
+        const orderCopy = { ...o };
+        if (overrides[orderCopy._id]) {
+          orderCopy.status = overrides[orderCopy._id];
+        }
+        allOrders.push(orderCopy);
       }
     });
   };
